@@ -1,0 +1,78 @@
+/*
+Theme Name:     poseidon-child
+Description:    Theme enfant de Poseidon
+Author:         Jean-Daniel Philippe
+Author URI:     https://espritdeliberte.leswoody.net
+Template:       poseidon
+Version:        1.0
+*/
+
+/* Pour la page contact */
+table.contact td.contact {
+    border: none !important;
+    border-collapse: collapse;
+    padding: 0;
+    border-spacing: 0;
+    padding: 0;
+}
+
+/*
+ - Permet de baliser les textes bibliques et les references
+ - Aligne verticalement les elements des cellules du tableau des predic
+ - Definition du H2 pour les ref bibliques trouve ici: https://www.w3schools.com/tags/tag_hn.asp
+ */
+
+.texte-biblique {
+    font-family: Georgia, Times, Times New Roman, serif;
+    line-height: 24px;
+    font-style: italic;
+}
+
+.ref-biblique {
+    display: block;
+    font-size: 1.5em;
+    margin-top: 0.83em;
+    margin-bottom: 0.83em;
+    margin-left: 0;
+    margin-right: 0;
+    font-weight: bold;
+}
+
+table.dataTable tbody td {
+    vertical-align: middle;
+    overflow: hidden;        /* this is what fixes the expansion */
+    text-overflow: ellipsis; /* not supported in all browsers, but I accepted the tradeoff */
+    white-space: nowrap;
+}
+
+/* Probleme de font avec Bootstrap 3 */
+html, body {
+    font-size: 100%;
+}
+
+/* Concerne le theme poseidon-child */
+
+#footer {
+    background-color: black; /* Le pied de la page sera en noir */
+    color: white; /* Le texte en blanc */
+
+    /* Pour que le pied de page reste en bas */
+    position: inherit;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    clear:both;
+}
+
+.credit-link {
+    display: none;
+}
+
+.no-border, .no-border th, .no-border td {
+    border: 0 none;
+    margin: 0 0 0 0;
+}
+
+.site-footer .site-info {
+    padding: 1em 0;
+}
