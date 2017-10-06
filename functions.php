@@ -311,8 +311,10 @@ function wpdf_redirect_par_wp() {
     }
 
     // Pour ne pas casser les anciens liens
+    // Anciennes URL  =>   Nouvelles URL
     $wpdf_liste_redirections = [
-        '/liste-des-predications' => 'page-des-cultes'
+        '/liste-des-predications' => 'page-des-cultes',
+        '/etudes-bibliques'       => 'etude-biblique'    // 06/10/2017
     ];
 
     $wpdf_explode_request = explode("/", $wp->request); // rechercher les redirections génériques
