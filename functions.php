@@ -39,6 +39,32 @@ function my_child_theme_locale() {
 }
 add_action( 'after_setup_theme', 'my_child_theme_locale' );
 
+
+// Pour desactiver le onclick sur les menus parent
+function jqueryscript_in_head() { ?>
+    <script type="text/javascript">
+        var $j = jQuery.noConflict();
+        $j(document).ready(function() {
+            $j("li:has(ul)").children("a").click(function () {
+                return false;
+            });
+        });
+    </script>
+<?php }
+add_action('wp_head', 'jqueryscript_in_head');
+
+/*
+$debug_tags = array();
+add_action( 'all', function ( $tag ) {
+    global $debug_tags;
+    if ( in_array( $tag, $debug_tags ) ) {
+        return;
+    }
+    echo "<pre>" . $tag . "</pre>";
+    $debug_tags[] = $tag;
+} );
+*/
+
 // Cette partie concerne l'ajout du champ "Profession" dans les profile-card des utilisateurs
 
 function addUserOccupationFields($user) {
