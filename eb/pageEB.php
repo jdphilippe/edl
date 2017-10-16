@@ -3,8 +3,8 @@
  * Template Name: Page des etudes bibliques
  */
 
-// ini_set('display_errors',1);
-// error_reporting(E_ALL);
+ ini_set('display_errors',1);
+ error_reporting(E_ALL);
 // var_dump( $the_query->posts );
 
 get_header();
@@ -20,14 +20,20 @@ $inc_common_ui = dirname(__FILE__) . "/../common/common" . ( isMobile() ? "_mobi
 require_once $inc_common_ui;
 
 $activeTab = -1; // Onglet actif
+
+// Recherche de la page demandee
+$url = filter_input(INPUT_SERVER, 'REQUEST_URI');
+$url = rtrim($url, '/'); // Enleve le dernier /
+$tab = explode( '/', $url );
+$cat_calling = end( $tab );
 ?>
 <div id="tabEB">
 
     <!-- On place la barre d'onglet -->
     <ul class="nav nav-pills">
         <?php
-        $category_id = get_category_by_slug('etude-biblique');
-        $categories  = get_categories(array(
+        $category_id = get_category_by_slug( $cat_calling );
+        $categories  = get_categories( array (
             'hide_empty' => 0,
             'child_of'   => $category_id->term_id,
             'orderby'    => 'slug',
@@ -60,7 +66,7 @@ $activeTab = -1; // Onglet actif
 
     <!-- On place le tableau des EB -->
     <div id='tab_'>
-        <table class="dataTable display responsive table table-striped table-hover" id="table_etudebiblique" style="width: 100%;">
+        <table class="dataTable display responsive table table-striped table-hover" id="table_rencontre" style="width: 100%;">
             <thead>
                 <tr>
                     <th style='text-align: center' class='all'>Date</th>
@@ -103,7 +109,7 @@ $activeTab = -1; // Onglet actif
                 }).find('.ui-tabs-nav li').off('keydown'); // Pour bloquer la navigation au clavier
             }
 
-            table = $('#table_etudebiblique').DataTable({
+            table = $('#table_rencontre').DataTable({
                 destroy: true,
                 fixedHeader: true,
                 responsive: true,
@@ -113,7 +119,7 @@ $activeTab = -1; // Onglet actif
                 sort: false,
                 info: false,
                 language: {
-                    emptyTable: "Ces études bibliques ne sont pas encore disponibles"
+                    emptyTable: "Ces rencontres ne sont pas encore disponibles"
                 },
                 "sDom": 'lfrtip',
                 columns: [

@@ -226,3 +226,38 @@ function findMedia($post) {
 
     return $result;
 }
+
+function isJSONable( $cat_ID ) {
+    $slug = get_the_category_by_ID($cat_ID);
+    if ($slug == "jsonable") {
+        return true;
+    }
+
+    $tab = get_ancestors( $cat_ID, 'category' );
+    if (empty($tab)) {
+        return false;
+    }
+
+    return isJSONable(reset($tab));
+}
+
+function get_last_category_child( $cat_ID ) {
+    $result = $cat_ID;
+    $tab = category_has_children( $cat_ID );
+    if ( empty( $tab )) {
+        return $result;
+    }
+
+    return get_last_category_child( reset($result) );
+}
+
+function category_has_children( $term_id = 0, $taxonomy = 'category' ) {
+    $children = get_categories( array(
+        'child_of'      => $term_id,
+        'taxonomy'      => $taxonomy,
+        'hide_empty'    => false,
+        'fields'        => 'ids',
+    ));
+
+    return $children;
+}

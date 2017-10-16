@@ -160,27 +160,60 @@ function generateJSONFiles($post_id) {
     $categories = get_the_category($post_id);
 
     // On ne prend que les predication ou les etude bibliques
-    $valid_cat = [ "predication", "etude-biblique" ];
-    $found = false;
+//    $valid_cat = [ "predication", "etude-biblique", "kt" ];
+//    $found = false;
+    $jsonableCategory = null;
     foreach ($categories as $category) {
-        if (in_array($category->slug, $valid_cat )) {
-            $found = true;
+        if (isJSONable($category->cat_ID)) {
+//            $found = true;
+            $jsonableCategory = $category;
             break;
         }
+
+ //       if ( in_array($category->slug, $valid_cat )) {
+ //           $found = true;
+ //           break;
+//        }
     }
 
-    if (! $found ) {
+    if ( $jsonableCategory == null ) {
         return;
     }
 
-    generateJSONFile($categories, true);
-    generateJSONFile($categories, false);
+    // Config pour les EB & KT
+    $postStatus = "any";
+    $orderType  = "ASC";
+    $tmp = [];
+    $category = $jsonableCategory->slug;
+
+//    foreach ($categories as $category) {
+        if ($jsonableCategory->slug == "predication") { // Modif si on genere le json des predications
+            $postStatus = "publish";
+            $orderType  = "DESC";
+        } else {
+            $cat_ID = get_last_category_child( $jsonableCategory->cat_ID );
+            //$cat_ID = get_the_category_by_ID( $jsonableCategory );
+            $jsonableCategory = get_term( $cat_ID, 'category' );
+            $category = $jsonableCategory->slug;
+            //if (category_has_children($category->cat_ID) ) {
+                //continue; // On prend uniquement les sous-categories
+            //}
+        }
+
+        $tmp[] = $category;
+//    }
+
+    $categories = $tmp;
+
+    generateJSONFile($categories, $orderType, $postStatus, true);
+    generateJSONFile($categories, $orderType, $postStatus, false);
 }
 
 add_action('save_post', 'generateJSONFiles'); // 'publish_post'
 
-function generateJSONFile($categories, $isMobile) {
+function generateJSONFile($categories, $orderType, $postStatus, $isMobile) {
     try {
+        /*
         // Config pour les EB
         $postStatus = "any";
         $orderType  = "ASC";
@@ -198,6 +231,8 @@ function generateJSONFile($categories, $isMobile) {
         }
 
         $categories = $tmp;
+
+         */
         $criteria = [
             "post_type" => "post",
             "tax_query" => [
@@ -296,6 +331,11 @@ function generateJSONFile($categories, $isMobile) {
         $fname .= ".json";
 
         $fp = fopen($fname, 'w');
+        if (! $fp) {
+            echo "Erreur d'acces au disque !!!";
+            return ;
+        }
+
         fwrite($fp, $json);
         fclose($fp);
     } catch (Exception $e) {
