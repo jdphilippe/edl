@@ -33,6 +33,10 @@ $cat_calling = end( $tab );
     <ul class="nav nav-pills">
         <?php
         $category_id = get_category_by_slug( $cat_calling );
+        if ($category_id === FALSE) {
+            echo "L'URL de la page appelante n'est pas bonne: " . $cat_calling;
+        }
+
         $categories  = get_categories( array (
             'hide_empty' => 0,
             'child_of'   => $category_id->term_id,
@@ -145,7 +149,7 @@ $cat_calling = end( $tab );
                 },
                 drawCallback: function () {
                     // Une fois les lignes inserees - la hauteur etant occupee, on peut replacer le pied de page
-                    // footerResize();
+                    footerResize();
                 }
             });
 
@@ -165,7 +169,7 @@ $cat_calling = end( $tab );
         });
 
         // Pour caler le pied de page en bas lors d'un changement d'onglet
-/*
+
         function footerResize() {
             var footerPosition = ($("body").height() + $("#footer").innerHeight() > $(window).height()) ? "inherit" : "fixed";
             $('#footer').css('position', footerPosition);
@@ -174,7 +178,7 @@ $cat_calling = end( $tab );
         $("body").resize(function() {
             setTimeout(footerResize, 500);
         });
-*/
+
         function getActiveTab() {
             return <?= $activeTab ?>;
         }

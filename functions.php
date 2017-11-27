@@ -1,4 +1,8 @@
 <?php
+
+ ini_set('display_errors',1);
+ error_reporting(E_ALL);
+
 require_once dirname(__FILE__) . "/common/fct_utils.php";
 
 /*
@@ -127,7 +131,7 @@ function modify_sermon_title($post_id) {
         }
     }
 
-    if (!$isSermon) {
+    if (! $isSermon) {
         return;
     }
 
@@ -156,83 +160,43 @@ function modify_sermon_title($post_id) {
 
 add_action('save_post', 'modify_sermon_title');
 
-function generateJSONFiles($post_id) {
+function generateJSONFiles( $post_id ) {
     $categories = get_the_category($post_id);
 
-    // On ne prend que les predication ou les etude bibliques
-//    $valid_cat = [ "predication", "etude-biblique", "kt" ];
-//    $found = false;
-    $jsonableCategory = null;
+    // On ne prend que les articles jsonable
     foreach ($categories as $category) {
-        if (isJSONable($category->cat_ID)) {
-//            $found = true;
-            $jsonableCategory = $category;
-            break;
+        if ( isJSONable($category->cat_ID) ) {
+            if ( empty (category_has_children($category->cat_ID)) ) {
+                generateJSONFilesFromCategory( $category );
+            } else {
+                // Erreur de selection, on ne doit selectionner que les elements feuilles de la hierarchie 'jsonable',
+                // pour eviter leur affichage dans le widget 'categorie'
+                wp_remove_object_terms( $post_id, $category->cat_ID, "category" );
+            }
         }
-
- //       if ( in_array($category->slug, $valid_cat )) {
- //           $found = true;
- //           break;
-//        }
     }
-
-    if ( $jsonableCategory == null ) {
-        return;
-    }
-
-    // Config pour les EB & KT
-    $postStatus = "any";
-    $orderType  = "ASC";
-    $tmp = [];
-    $category = $jsonableCategory->slug;
-
-//    foreach ($categories as $category) {
-        if ($jsonableCategory->slug == "predication") { // Modif si on genere le json des predications
-            $postStatus = "publish";
-            $orderType  = "DESC";
-        } else {
-            $cat_ID = get_last_category_child( $jsonableCategory->cat_ID );
-            //$cat_ID = get_the_category_by_ID( $jsonableCategory );
-            $jsonableCategory = get_term( $cat_ID, 'category' );
-            $category = $jsonableCategory->slug;
-            //if (category_has_children($category->cat_ID) ) {
-                //continue; // On prend uniquement les sous-categories
-            //}
-        }
-
-        $tmp[] = $category;
-//    }
-
-    $categories = $tmp;
-
-    generateJSONFile($categories, $orderType, $postStatus, true);
-    generateJSONFile($categories, $orderType, $postStatus, false);
 }
 
 add_action('save_post', 'generateJSONFiles'); // 'publish_post'
 
+function generateJSONFilesFromCategory( $jsonableCategory ) {
+
+    // Config pour les EB & KT
+    $postStatus = "any";
+    $orderType  = "ASC";
+    $category   = $jsonableCategory->slug;
+
+    if ($category == "predication") {
+        $postStatus = "publish";
+        $orderType  = "DESC";
+    }
+
+    generateJSONFile([$category], $orderType, $postStatus, true);
+    generateJSONFile([$category], $orderType, $postStatus, false);
+}
+
 function generateJSONFile($categories, $orderType, $postStatus, $isMobile) {
     try {
-        /*
-        // Config pour les EB
-        $postStatus = "any";
-        $orderType  = "ASC";
-        $tmp = [];
-
-        foreach ($categories as $category) {
-            if ($category->slug == "predication") { // Modif si on genere le json des predications
-                $postStatus = "publish";
-                $orderType  = "DESC";
-            } else if ($category->slug == "etude-biblique") {
-                continue; // On prend uniquement les sous-categories
-            }
-
-            $tmp[] = $category->slug;
-        }
-
-        $categories = $tmp;
-
-         */
         $criteria = [
             "post_type" => "post",
             "tax_query" => [
@@ -261,16 +225,13 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile) {
             $content = apply_filters('the_content', $post->post_content);
             $biblicalRef = extract_text_from_tag("class", "ref-biblique", $content);
 
-            $media = "";
-            $image = "";
+            $media   = "";
+            $image   = "";
+            $tooltip = "";
             $title = get_the_title($post->ID);
             $isPublished = get_post_status($post->ID) == 'publish';
             if ( ! $isMobile ) {
                 $image = get_the_post_thumbnail_url( $post->ID, [ $width, $height ] );
-                /*
-                if (endsWith($image, "&ssl=1")) {
-                    $image = substr($image, 0, strlen($image) - 6);
-                } */
 
                 // On met l'image par defaut si non definie
                 // Concerne les EB annoncées, mais non publiées
