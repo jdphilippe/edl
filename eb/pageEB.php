@@ -61,6 +61,12 @@ $cat_calling = end( $tab );
                 $activeTab = $numTab; // On active l'onglet des etudes bibliques de l'annee en cours
             }
 
+            // Suppression du texte entre (), s'il y en a. Par ex: Notre pere (Catechisme) -> Notre Pere
+            $pos = strpos($category->name, "(");
+            if ($pos !== false) {
+                $category->name = substr($category->name, 0, $pos -1);
+            }
+
             // Ajout d'un onglet
             echo "<li id='li_" . $category->slug . "' role='presentation'><a href='#tab_' onclick='javascript:selectTab(\"" . $category->slug . "\"); return false;' id='a_" . $category->slug . "'>" . $category->name . "</a></li>\n"; // Le "return false" permet de ne pas executer le lien "href". Ce lien est necessaire pour les onglets, mais pose probleme pour le mode mobile
             $numTab++;
