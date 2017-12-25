@@ -149,7 +149,7 @@ function createLink($link) {
         $image = "button_play.png"; // Pour les EB
         $text  = "Ecouter";         // Pour les EB
 
-        if (strpos($link, 'predic') !== false) {
+        if ( (strpos($link, 'predic') !== false) || (strpos($link, 'méditation') !== false) ) {
             $image = "button_play_predic.png";
             $text .= " la prédication";
         } else if (strpos($link, 'culte') !== false) {
