@@ -1,7 +1,7 @@
 <?php
 
-ini_set('display_errors',1);
-error_reporting(E_ALL);
+ ini_set('display_errors',1);
+ error_reporting(E_ALL);
 
 require_once dirname(__FILE__) . "/common/fct_utils.php";
 
@@ -24,7 +24,7 @@ function poseidon_footer_text_pjd() {
                 Pour faire un don en ligne suivez <a href="https://www.eglise-protestante-unie.fr/montpellier-p20217/don" target="_blank">ce lien</a>.
             </td>
             <td>
-                Copyright &copy; 2017-2018, tous droits réservés.<br/>
+                &copy; Copyright 2017, tous droits réservés.<br/>
                 Fièrement propulsé par <a href="http://wordpress.org" title="WordPress">WordPress</a> et <a href="https://themezee.com/themes/poseidon/" title="Poseidon WordPress Theme">Poseidon</a>.
             </td>
             <td>
@@ -314,7 +314,6 @@ function wpdf_redirect_par_wp() {
     // Pour ne pas casser les anciens liens
     // Anciennes URL  =>   Nouvelles URL
     $wpdf_liste_redirections = [
-        '/2016/12/24/contact'     => 'contact',          // Premiere page contact, il y a des liens dans FB
         '/liste-des-predications' => 'page-des-cultes',
         '/etudes-bibliques'       => 'etude-biblique'    // 06/10/2017
     ];
