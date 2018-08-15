@@ -4,6 +4,7 @@ ini_set('display_errors',1);
 error_reporting(E_ALL);
 
 require_once dirname(__FILE__) . "/common/fct_utils.php";
+require_once dirname(__FILE__) . "/common/date_utils.php";
 
 /*
  *  activation theme
@@ -14,7 +15,7 @@ function theme_enqueue_styles() {
     wp_enqueue_style('parent-style', get_template_directory_uri() . '/style.css');
 }
 
-function poseidon_footer_text_pjd() {
+function poseidon_footer_text_edl() {
     ?>
 
     <table class="no-border">
@@ -24,7 +25,7 @@ function poseidon_footer_text_pjd() {
                 Pour faire un don en ligne suivez <a href="https://www.eglise-protestante-unie.fr/montpellier-p20217/don" target="_blank">ce lien</a>.
             </td>
             <td>
-                Copyright &copy; 2017-2018, tous droits réservés.<br/>
+                Copyright &copy; 2017-<?= date("Y") ?>, tous droits réservés.<br/>
                 Fièrement propulsé par <a href="http://wordpress.org" title="WordPress">WordPress</a> et <a href="https://themezee.com/themes/poseidon/" title="Poseidon WordPress Theme">Poseidon</a>.
             </td>
             <td>
@@ -36,7 +37,7 @@ function poseidon_footer_text_pjd() {
     <?php
 }
 
-add_action('poseidon_footer_text', 'poseidon_footer_text_pjd');
+add_action('poseidon_footer_text', 'poseidon_footer_text_edl');
 
 function my_child_theme_locale() {
     load_child_theme_textdomain( 'poseidon', get_stylesheet_directory() . '/languages' );
@@ -120,6 +121,32 @@ function get_user_role($id) {
     $user = new WP_User($id);
     return $user->roles[0];
 }
+
+// Pour enlever les articles privés de la Home Page, meme si on est logue admin
+function my_private_post_filter( $where = '' ) {
+	// Make sure this only applies to loops / feeds on the frontend
+	if (! is_single() && ! is_admin()) {
+		// exclu les articles privees
+        $where = str_replace("OR wppr_posts.post_status = 'private'", "", $where);
+	}
+
+	return $where;
+}
+add_filter( 'posts_where', 'my_private_post_filter' );
+
+// Enleve les lettres Privé: des titres des articles privés (EB non encore publiée)
+function trim_title($title) {
+
+	$title = esc_attr($title);
+
+	if (startsWith($title, "Privé")) {
+	    $title = substr($title, strpos($title, ':') + 1); // +1 blanc
+    }
+
+	return $title;
+}
+add_filter('the_title', 'trim_title');
+
 
 function modify_sermon_title($post_id) {
     $isSermon = false;
@@ -219,6 +246,7 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile) {
         $height = 52;
         $paddingTop = 14;
         $paddingLeft = 10;
+        $dateUtils = new DateUtils();
 
         // Parcours des articles trouves
         foreach ($the_query->posts as $post) {
@@ -226,7 +254,6 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile) {
             $biblicalRef = extract_text_from_tag("class", "ref-biblique", $content);
 
             $media   = "";
-            $image   = "";
             $tooltip = "";
             $title = get_the_title($post->ID);
             $isPublished = get_post_status($post->ID) == 'publish';
@@ -254,12 +281,18 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile) {
             // Affiche un lien si l'article est publie
             if ( $isPublished ) {
                 $title = "<a href='" . get_post_permalink($post->ID) . "' target='_blank' title='" . $tooltip . "'>" . $title . "</a>";
-                $media = findMedia($post);
+                $media = findMedia($post, $isMobile);
             }
 
             $formatDate  = $isMobile ? 'd/m' : 'd/m/Y';
             $displayDate = get_the_time($formatDate, $post->ID);
-            $timestamp   = get_the_time('G'        , $post->ID);
+            $timestamp   = get_the_time('G'     , $post->ID);
+
+            if ( ! $isMobile && in_array( "predication", $categories ) ) {
+                $comment = $dateUtils->getComment( $timestamp );
+                if ( $comment != "" )
+	                $displayDate .= '<br><span style="color:chocolate">' . $comment . '</span>';
+            }
 
             $data[] = [
                 "date" => [
@@ -356,7 +389,7 @@ add_action('template_redirect', 'wpdf_redirect_par_wp');
 
 /** Step 1. */
 function my_esprit_de_liberte_menu() {
-    add_options_page( 'Esprit de Liberté - Outils', 'Outils Esprit libre', 'manage_options', 'outils-esprit-libre', 'plugin_esprit_de_liberte_outils' );
+	add_management_page( 'Esprit de Liberté - Outils JSON', 'Esprit de Liberté - JSON', 'manage_options', 'outils-esprit-libre', 'plugin_esprit_de_liberte_outils' );
 }
 
 /** Step 2 (from text above). */

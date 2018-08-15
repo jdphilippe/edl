@@ -26,6 +26,9 @@ table.contact td.contact {
     font-family: Georgia, Times, Times New Roman, serif;
     line-height: 24px;
     font-style: italic;
+/*
+    background-color: ghostwhite;
+    display: block; */
 }
 
 .ref-biblique {

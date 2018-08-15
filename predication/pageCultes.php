@@ -32,6 +32,7 @@ if (isMobile()) {
         <ul>
             <li>Vous pouvez trier sur la colonne de votre choix en cliquant sur son entête.
             <li>Vous pouvez faire une recherche en utilisant le champ prévu à cet effet. Elle s'effectue sur toute la grille et au fur et à mesure de la saisie, les éléments recherchés apparaîssent.
+            <li>Le raccourci clavier CTRL F (ou Command F sur Mac) active le champ de la recherche.
             <li>Pour accéder au texte de la prédication, vous pouvez cliquer sur le lien présent dans la colonne "Titre".
             <li>Pour regarder une prédication, vous pouvez cliquer sur l'icone <img src='<?= $COMMON_PATH ?>/images/tv.png' style='vertical-align:middle;' alt='Regarder la prédication' title='Regarder la prédication'/>
             <li>Pour écouter le culte en entier, vous pouvez cliquer sur l'icone <img src='<?= $COMMON_PATH ?>/images/button_play.png' style='vertical-align:middle;' alt='Ecouter le culte' title='Ecouter le culte'/>
@@ -69,7 +70,7 @@ if (isMobile()) {
                 fname = category,
                 oldHeaderFixedValue = 0,
                 sortable = ! isMobile(),
-                dateColWidth = 80; // - (sortable ? 0 : 10);
+                dateColWidth = isMobile() ? 80 : 100;
 
             if (isMobile())
                 fname += "_mobile";
@@ -82,10 +83,9 @@ if (isMobile()) {
                 fixedHeader: true,
                 paging: false,
                 sort: sortable,
-//                info: false,
                 responsive: true,
                 language: {
-                    url: "https://cdn.datatables.net/plug-ins/1.10.15/i18n/French.json"
+                    url: "<?= $COMMON_PATH ?>/json/traduction.json"
                 },
                 ajax: {
                     url: "<?= $THEME_PATH ?>/json/" + fname
@@ -102,14 +102,41 @@ if (isMobile()) {
                     {data: "refbib"}
                 ],
                 columnDefs: [
-                    {width: 80, targets: 0}, // Date 80
+                    {width: dateColWidth, targets: 0}, // Date
                     {width: 87,           targets: 2}, // Liens
                     {width: 170,          targets: 3}  // Texte biblique
                 ],
                 order: [[0, "desc"]],
                 fnInitComplete: function () {
-                    if (!isMobile())
-                        $("input[type='search']").focus();
+
+                    // Enleve les accents du champ de recherche
+                    var fnSearch = function () {
+                        table
+                            .search(
+                                jQuery.fn.DataTable.ext.type.search.string(this.value)
+                            )
+                            .draw(false); // Pour eviter un clignotement du tableau
+                    },
+                        $searchField = $("input[type='search']");
+
+                    if ( isMobile() ) {
+                        $searchField
+                            .off()
+                            .on("keyup input", fnSearch);
+                    } else {
+                        // Remove accented character from search input as well
+                        $searchField
+                            .off()
+                            .keyup(fnSearch)
+                            .addClass("mousetrap") // Pour qu'un Ctrl +f dessus n'active pas la recherche par defaut
+                            .focus();
+
+                        // Map le CTRL +F sur le champ Recherche
+                        Mousetrap.bind("mod+f", function () {
+                            $searchField.focus();
+                            return false;
+                        });
+                    }
                 },
                 buttons: ['help']
             });

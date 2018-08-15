@@ -19,7 +19,6 @@ function isMobile() {
 $inc_common_ui = dirname(__FILE__) . "/../common/common" . ( isMobile() ? "_mobile" : "" ) . ".php"; // pour inclure common.php ou common_mobile.php selon le cas
 require_once $inc_common_ui;
 
-$activeTab = -1; // Onglet actif
 
 // Recherche de la page demandee
 $url = filter_input(INPUT_SERVER, 'REQUEST_URI');
@@ -44,23 +43,10 @@ $cat_calling = end( $tab );
             'order'      => 'ASC'
         ));
 
-        /*
-         * Recherche de l'onglet a selectionner par defaut
-         * La recherche est basee sur la date indiquee dans les identifiants des sous-categories etude-biblique.
-         * Format: YYYYMM
-         * On active l'onglet dont la date passee est la plus proche de la date courante
-         */
+        // Les plus recentes a gauche
+        $categories = array_reverse( $categories );
 
-        $currentYearMonth = intval(date("Ym", time()));
-        $numTab = 0;
-        $categoryList = [];
         foreach ($categories as $category) {
-            $categoryList[] = $category->slug;
-            $tabYearMonth = intval(substr($category->slug, 0, 6)); // Les identifiants des categories commencent par YYYYMM
-            if ($currentYearMonth >= $tabYearMonth) {
-                $activeTab = $numTab; // On active l'onglet des etudes bibliques de l'annee en cours
-            }
-
             // Suppression du texte entre (), s'il y en a. Par ex: Notre pere (Catechisme) -> Notre Pere
             $pos = strpos($category->name, "(");
             if ($pos !== false) {
@@ -69,7 +55,6 @@ $cat_calling = end( $tab );
 
             // Ajout d'un onglet
             echo "<li id='li_" . $category->slug . "' role='presentation'><a href='#tab_' onclick='javascript:selectTab(\"" . $category->slug . "\"); return false;' id='a_" . $category->slug . "'>" . $category->name . "</a></li>\n"; // Le "return false" permet de ne pas executer le lien "href". Ce lien est necessaire pour les onglets, mais pose probleme pour le mode mobile
-            $numTab++;
         }
         ?>
     </ul>
@@ -109,13 +94,16 @@ $cat_calling = end( $tab );
             return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
         }
 
-        var table;
+        var table,
+            oldTab = "";
+
         $(document).ready(function () {
-            var oldHeaderFixedValue = 0;
+            var oldHeaderFixedValue = 0,
+                dateColWidth = isMobile() ? 80 : 100;
 
             if ($("#tabEB").tabs) {
                 $("#tabEB").tabs({
-                    active: getActiveTab()
+                    active: 0
                 }).find('.ui-tabs-nav li').off('keydown'); // Pour bloquer la navigation au clavier
             }
 
@@ -143,15 +131,15 @@ $cat_calling = end( $tab );
                     {data: "refbib"}
                 ],
                 columnDefs: [
-                    {width: 80 , targets: 0}, // Date
-                    {width: 65 , targets: 2}, // Liens 52
-                    {width: 170, targets: 3}  // Texte a l'etude
+                    {width: dateColWidth, targets: 0}, // Date
+                    {width: 65          , targets: 2}, // Liens 52
+                    {width: 170         , targets: 3}  // Texte a l'etude
                 ],
                 initComplete: function () {
                     /* On charge la grille uniquement quand le composant Datatable a fini de s'initialiser.
                      Sinon, genere une erreur https://datatables.net/manual/tech-notes/4
                      */
-                    setActiveTab(getActiveTab());
+                    setActiveTab(0);
                 },
                 drawCallback: function () {
                     // Une fois les lignes inserees - la hauteur etant occupee, on peut replacer le pied de page
@@ -185,10 +173,6 @@ $cat_calling = end( $tab );
             setTimeout(footerResize, 500);
         });
 
-        function getActiveTab() {
-            return <?= $activeTab ?>;
-        }
-
         function setActiveTab(numTab) {
             var tab = $("li[id^='li_']").eq(numTab);
             tab = tab.attr("id").replace("li_", "");
@@ -204,6 +188,11 @@ $cat_calling = end( $tab );
             },
             fname = tab;
 
+            if (tab == oldTab)
+                return false; // Pour eviter de charger les memes donnees
+
+            oldTab = tab;
+
             if (isMobile())
                 fname += "_mobile";
 
@@ -211,6 +200,10 @@ $cat_calling = end( $tab );
 
             $.post("<?= $THEME_PATH ?>/json/" + fname, param, function (data) {
                 // Redessine le tableau avec les nouvelles valeurs
+
+                if ( typeof data.data === 'undefined' )
+                    data = JSON.parse( data ); // portage jQuery 3
+
                 table.clear();
                 table.rows.add(data.data);
                 table.draw();
@@ -225,7 +218,7 @@ $cat_calling = end( $tab );
                 } else {
                     $("div[id='tab_'].ui-widget-content a").css("color", "#22aadd"); // On remet les liens des titres en bleu (tabs surcharge la css)
                 }
-            }).error(function() {
+            }).fail(function() {
                 // En cas d'erreur 404. Selection d'un onglet sans EB publiee
                 table.clear();
                 table.draw();
@@ -235,4 +228,4 @@ $cat_calling = end( $tab );
 </script>
 
 <?php
-get_footer();
+//get_footer();

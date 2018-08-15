@@ -177,7 +177,7 @@ function createLink($link) {
     return "<a href='" . $link . "' target='_blank'><img src='" . $COMMON_PATH . "/images/" . $image . "' style='vertical-align:middle;' alt='" . $text . "' title='" . $text . "'/></a>";
 }
 
-function findMedia($post) {
+function findMedia($post, $isMobile) {
     $result = "";
     $tab    = array();
 
@@ -201,23 +201,37 @@ function findMedia($post) {
         }
     }
 
+    $hasVideo = false;
     $content = trim($content);
     if (startsWith($content, "[youtube ")) {
         $link = substr( $content, 9, strpos( $content, ']' ) -9 );
         $link = createLink($link);
         $tab[] = $link;
-//        array_splice($tab, 0, 0, $link); // On met le lien youtube en premier
+        $hasVideo = true;
     }
 
-    if (empty($tab)) {
+    if ( empty($tab) ) {
         return "";
     }
 
     $tab = array_unique($tab);
     asort($tab);
 
-    if ( isSermon($post->ID) && count($tab) === 1 ) {
-        $tab[0] = surroundWithDiv($tab[0], true);
+    if ( ! $isMobile && isSermon( $post->ID ) ) {
+	    $dummyLink = '<img src="https://espritdeliberte.leswoody.net/wp-content/uploads/2018/07/img_transparente.png" style="vertical-align:middle;" >';
+    	switch ( count($tab) ) {
+		    case 1:
+			    array_splice($tab, 0, 0, $dummyLink); // On place ce lien en premier
+				break;
+
+		    case 2:
+		    	if ( $hasVideo ) {
+					array_splice($tab, 0, 0, $dummyLink); // On place ce lien en premier
+			    }
+			    break;
+
+		    default :
+	    }
     }
 
     foreach ($tab as $mp3) {
