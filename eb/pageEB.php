@@ -67,7 +67,7 @@ $cat_calling = end( $tab );
                     <th style='text-align: center' class='all'>Date</th>
                     <th style='text-align: center' class='all'>Titre de la séance</th>
                     <th style='text-align: center' class="min-tablet-p">Liens</th>
-                    <th style='text-align: center' class='min-tablet-p'>Texte à l'étude</th>
+                    <th style='text-align: center' class='min-tablet-p'>Textes à l'étude</th>
                 </tr>
             </thead>
         </table>
