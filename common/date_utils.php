@@ -7,16 +7,19 @@ class DateUtils {
 	function __construct() {
 		$currentYear = date("Y");
 		for ($year = 2016; $year <= $currentYear; $year++) {
-			$this->mp_date_comment[ $this->mardi_saint($year) ]        = 'Mardi Saint';
-			$this->mp_date_comment[ $this->mercredi_saint($year) ]     = 'Mercredi Saint';
-			$this->mp_date_comment[ $this->jeudi_saint($year) ]        = 'Jeudi Saint';
-			$this->mp_date_comment[ $this->vendredi_saint($year) ]     = 'Vendredi Saint';
-			$this->mp_date_comment[ $this->samedi_saint($year) ]       = 'Samedi Saint';
-			$this->mp_date_comment[ $this->dimanche_paques($year) ]    = 'Pâques';
-			$this->mp_date_comment[ $this->jeudi_ascension($year) ]    = 'Ascension';
-			$this->mp_date_comment[ $this->dimanche_pentecote($year) ] = 'Pentecôte';
-			$this->mp_date_comment[ "24/12/$year" ]                    = 'Veillée de Noël';
-			$this->mp_date_comment[ "25/12/$year" ]                    = 'Noël';
+			$this->mp_date_comment[ $this->dimanche_rameaux($year) ]     = 'Rameaux';
+			$this->mp_date_comment[ $this->lundi_saint($year) ]          = 'Lundi Saint';
+			$this->mp_date_comment[ $this->mardi_saint($year) ]          = 'Mardi Saint';
+			$this->mp_date_comment[ $this->mercredi_saint($year) ]       = 'Mercredi Saint';
+			$this->mp_date_comment[ $this->jeudi_saint($year) ]          = 'Jeudi Saint';
+			$this->mp_date_comment[ $this->vendredi_saint($year) ]       = 'Vendredi Saint';
+			$this->mp_date_comment[ $this->samedi_saint($year) ]         = 'Samedi Saint';
+			$this->mp_date_comment[ $this->dimanche_paques($year) ]      = 'Pâques';
+			$this->mp_date_comment[ $this->jeudi_ascension($year) ]      = 'Ascension';
+			$this->mp_date_comment[ $this->dimanche_pentecote($year) ]   = 'Pentecôte';
+			$this->mp_date_comment[ $this->dimanche_reformation($year) ] = 'Réformation';
+			$this->mp_date_comment[ "24/12/$year" ]                      = 'Veillée de Noël';
+			$this->mp_date_comment[ "25/12/$year" ]                      = 'Noël';
 		}
 	}
 
@@ -38,6 +41,12 @@ class DateUtils {
 		}
 
 		return $this->mp_date_comment[ $date ];
+	}
+
+	private function dimanche_reformation( $annee ) {
+		$date_reformation = strtotime("last Sunday of October $annee");
+
+		return date("d/m/Y", $date_reformation);
 	}
 
 	private function paques( $Jourj = 0, $annee = NULL ) {
@@ -121,6 +130,18 @@ class DateUtils {
 		$dimanche_paques = $this->dimanche_paques_internal( $annee );
 
 		return date( "d/m/Y", strtotime( "$dimanche_paques - 5 days" ) );
+	}
+
+	private function lundi_saint( $annee ) {
+		$dimanche_paques = $this->dimanche_paques_internal( $annee );
+
+		return date( "d/m/Y", strtotime( "$dimanche_paques - 6 days" ) );
+	}
+
+	private function dimanche_rameaux( $annee ) {
+		$dimanche_paques = $this->dimanche_paques_internal( $annee );
+
+		return date("d/m/Y", strtotime( "$dimanche_paques - 7 days" ) );
 	}
 
 	private function jeudi_ascension( $annee ) {
