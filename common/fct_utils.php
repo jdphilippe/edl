@@ -142,7 +142,10 @@ function createLink($link) {
 
     $image = "";
     $text  = "";
-    if (endsWith($link, "pdf")) {
+    if (endsWith($link, "debout-sainte-cohorte.mp3"))
+        return ""; // On ignore les mp3 ajoutes sur les cultes
+
+	if (endsWith($link, "pdf")) {
         $image = "pdf.png";
         $text  = "Lire";
     } else if (endsWith($link, "mp3")) {
@@ -218,10 +221,12 @@ function findMedia($post, $isMobile) {
     asort($tab);
 
     if ( ! $isMobile && isSermon( $post->ID ) ) {
-	    $dummyLink = '<img src="https://espritdeliberte.leswoody.net/wp-content/uploads/2018/07/img_transparente.png" style="vertical-align:middle;" >';
+	    $dummyLink = '<img src="https://espritdeliberte.leswoody.net/wp-content/uploads/2018/07/img_transparente.png" style="vertical-align: middle;" >';
     	switch ( count($tab) ) {
 		    case 1:
-			    array_splice($tab, 0, 0, $dummyLink); // On place ce lien en premier
+			    if ( ! strpos($tab[0], 'culte') !== false ) {
+				    array_splice( $tab, 0, 0, $dummyLink ); // On place ce lien en premier
+			    }
 				break;
 
 		    case 2:
@@ -234,7 +239,7 @@ function findMedia($post, $isMobile) {
 	    }
     }
 
-    foreach ($tab as $mp3) {
+    foreach ( $tab as $mp3 ) {
         $result .= " " . $mp3;
     }
 
