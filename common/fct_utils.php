@@ -142,6 +142,7 @@ function createLink($link) {
 
     $image = "";
     $text  = "";
+    $filename = basename($link);
     if (endsWith($link, "debout-sainte-cohorte.mp3"))
         return ""; // On ignore les mp3 ajoutes sur les cultes
 
@@ -159,6 +160,7 @@ function createLink($link) {
             $text .= " le culte";
         }
     } else if (strpos($link, "youtu") !== false) {
+		$filename = "";
         $image = "tv.png";
         $text  = "Regarder la prédication";
         if (strpos($link, "youtu.be") !== false) {
@@ -177,7 +179,11 @@ function createLink($link) {
         $link = substr_replace($link, "s", 4, 0); // Pour forcer les liens en HTTPS
     }
 
-    return "<a href='" . $link . "' target='_blank'><img src='" . $COMMON_PATH . "/images/" . $image . "' style='vertical-align:middle;' alt='" . $text . "' title='" . $text . "'/></a>";
+    $href = "<a href='" . $link . "' target='_blank'";
+    if ($filename != "")
+    	$href .= " download='" . $filename . "'";
+
+    return $href . "><img src='" . $COMMON_PATH . "/images/" . $image . "' style='vertical-align:middle;' alt='" . $text . "' title='" . $text . "'/></a>";
 }
 
 function findMedia($post, $isMobile) {
