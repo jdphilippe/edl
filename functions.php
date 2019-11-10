@@ -15,6 +15,25 @@ function theme_enqueue_styles() {
     wp_enqueue_style('parent-style', get_template_directory_uri() . '/style.css');
 }
 
+function pippin_filter_content_sample( $content ) {
+    if (is_single()) { ?>
+        <script>
+	        let $j = jQuery.noConflict();
+	        $j('a', $content).each(function () {
+	            let text = $j(this).text();
+	            if ( text.toLowerCase() === "télécharger" ) {
+                    $j(this).attr("download", "");
+                }
+            });
+        </script>
+<?php
+    }
+}
+//add_filter('the_content', 'pippin_filter_content_sample');
+
+// Affiche la case a cocher "Ne pas envoyer d'email"
+add_filter( 'jetpack_allow_per_post_subscriptions', '__return_true' );
+
 function poseidon_footer_text_edl() {
     ?>
 
@@ -48,7 +67,7 @@ add_action( 'after_setup_theme', 'my_child_theme_locale' );
 // Pour desactiver le onclick sur les menus parent
 function jqueryscript_in_head() { ?>
     <script type="text/javascript">
-        var $j = jQuery.noConflict();
+        let $j = jQuery.noConflict();
         $j(document).ready(function() {
             $j("li:has(ul)").children("a").click(function () {
                 return false;
@@ -76,7 +95,7 @@ function addUserOccupationFields($user) {
     ?>
     <script type="text/javascript">
         function addSample() {
-            var sample = "Titre d'une predication, par le " + jQuery("#occupation").val() + " " + jQuery('#first_name').val() + " " + jQuery('#last_name').val();
+            let sample = "Titre d'une predication, par le " + jQuery("#occupation").val() + " " + jQuery('#first_name').val() + " " + jQuery('#last_name').val();
             jQuery("#exemple").html(sample);
         }
 
@@ -108,7 +127,7 @@ add_action('user_new_form'    , 'addUserOccupationFields');
 
 function saveUserOccupationFields($user_id) {
     if (!current_user_can('edit_user')) {
-        return false;
+        return ;
     }
 
     update_user_meta($user_id, 'occupation', filter_input(INPUT_POST, 'occupation')); // $_POST['occupation']);
@@ -271,7 +290,7 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile) {
                 $tooltip = $title;
                 $title =
                     "<div style='overflow: hidden; max-height: " . $height . "px; float: left' >" .
-                        "<img src='" . $image . "' width='" . $width . "px' />" .
+                        "<img src='" . $image . "' width='" . $width . "px' alt='" . $tooltip . "' />" .
                     "</div>" .
                     "<div style='word-wrap: break-word; padding-top: " . $paddingTop . "px; padding-left: " . $paddingLeft . "px; display: inline-flex' >" .
                         $title .
