@@ -15,24 +15,55 @@ function theme_enqueue_styles() {
     wp_enqueue_style('parent-style', get_template_directory_uri() . '/style.css');
 }
 
-function pippin_filter_content_sample( $content ) {
-    if (is_single()) { ?>
-        <script>
-	        let $j = jQuery.noConflict();
-	        $j('a', $content).each(function () {
-	            let text = $j(this).text();
-	            if ( text.toLowerCase() === "télécharger" ) {
-                    $j(this).attr("download", "");
-                }
-            });
-        </script>
-<?php
-    }
-}
-//add_filter('the_content', 'pippin_filter_content_sample');
-
 // Affiche la case a cocher "Ne pas envoyer d'email"
 add_filter( 'jetpack_allow_per_post_subscriptions', '__return_true' );
+
+/*
+* On utilise une fonction pour créer notre custom post type 'maguelone150ans'
+*/
+
+function pjd_add_post_type_maguelone150ans() {
+
+	$labels = array (
+		// Le nom au pluriel
+		'name'                => _x( 'Evénements - Maguelone 150 ans', 'Post Type General Name'),
+		// Le nom au singulier
+		'singular_name'       => _x( 'Evénement 150 ans', 'Post Type Singular Name'),
+		// Le libellé affiché dans le menu
+		'menu_name'           => __( 'Maguelone 150 ans'),
+
+		// Les différents libellés de l'administration
+		'all_items'           => __( 'Tous les événements'),
+		'view_item'           => __( 'Voir les événements'),
+		'add_new_item'        => __( 'Ajouter un nouvel événement'),
+		'add_new'             => __( 'Ajouter'),
+		'edit_item'           => __( "Editer l'événement"),
+		'update_item'         => __( "Modifier l'événement"),
+		'search_items'        => __( 'Rechercher un événement'),
+		'not_found'           => __( 'Non trouvé'),
+		'not_found_in_trash'  => __( 'Non trouvé dans la corbeille'),
+	);
+
+	$args = array (
+		'label'               => __( 'Maguelone 150 ans'),
+		'description'         => __( 'Tout sur Maguelone 150 ans'),
+		'labels'              => $labels,
+		// On définit les options disponibles dans l'éditeur de notre custom post type ( un titre, un auteur...)
+		'supports'            => array ( 'title', 'author', 'thumbnail', 'comments', 'revisions', 'custom-fields' ),
+		/*
+		* Différentes options supplémentaires
+		*/
+		'show_in_rest'        => true,
+		'hierarchical'        => false,
+		'public'              => true,
+		'has_archive'         => true,
+		'rewrite'			  => array( 'slug' => 'maguelone-150-ans')
+	);
+
+	// On enregistre notre custom post type qu'on nomme ici "maguelone150ans" et ses arguments
+	register_post_type( 'maguelone150ans', $args );
+}
+add_action( 'init', 'pjd_add_post_type_maguelone150ans', 0 );
 
 function poseidon_footer_text_edl() {
     ?>
@@ -371,23 +402,32 @@ function wpdf_redirect_par_wp() {
         '/etudes-bibliques'       => 'etude-biblique'    // 06/10/2017
     ];
 
-    $wpdf_explode_request = explode("/", $wp->request); // rechercher les redirections génériques
+    $wpdf_explode_request = explode('/', $wp->request); // rechercher les redirections génériques
     $wpdf_nouvelle_adresse = ''; // variable qui va contenir la nouvelle adresse
     $wpdf_modif_adresse = false; // indique si une redirection a été trouvée dans le tableau
 
-    foreach ($wpdf_explode_request as $wpdf_elt_tableau) {
-        if (array_key_exists($wpdf_nouvelle_adresse . '/' . $wpdf_elt_tableau . '*', $wpdf_liste_redirections)) {
-            $wpdf_modif_adresse = true; // une redirection a été trouvée
-            $wpdf_nouvelle_adresse = '/' . $wpdf_liste_redirections[$wpdf_nouvelle_adresse . '/' . $wpdf_elt_tableau . '*']; // l'élément doit être remplacé dans la nouvelle adresse
-        } else {
-            // si pas trouvé dans le tableau, l'élément doit être conservé dans la nouvelle adresse
-            $wpdf_nouvelle_adresse .= '/' . $wpdf_elt_tableau;
-        }
+    // Ajout d'un patch pour corriger les liens de la lettre Mailship pour Maguelone 150 ans
+    if ( $wpdf_explode_request[0] === '2019' && $wpdf_explode_request[1] === '12' ) {
+	    $wpdf_explode_request[2] = '17';
+	    $wpdf_nouvelle_adresse = '/' . implode( '/', $wpdf_explode_request );
+	    $wpdf_modif_adresse = true;
     }
 
-    if (array_key_exists($wpdf_nouvelle_adresse, $wpdf_liste_redirections)) {
-        $wpdf_modif_adresse = true; // une redirection a été trouvée
-        $wpdf_nouvelle_adresse = '/' . $wpdf_liste_redirections[$wpdf_nouvelle_adresse];
+    if (! $wpdf_modif_adresse) {
+	    foreach ( $wpdf_explode_request as $wpdf_elt_tableau ) {
+		    if ( array_key_exists( $wpdf_nouvelle_adresse . '/' . $wpdf_elt_tableau . '*', $wpdf_liste_redirections ) ) {
+			    $wpdf_modif_adresse    = true; // une redirection a été trouvée
+			    $wpdf_nouvelle_adresse = '/' . $wpdf_liste_redirections[ $wpdf_nouvelle_adresse . '/' . $wpdf_elt_tableau . '*' ]; // l'élément doit être remplacé dans la nouvelle adresse
+		    } else {
+			    // si pas trouvé dans le tableau, l'élément doit être conservé dans la nouvelle adresse
+			    $wpdf_nouvelle_adresse .= '/' . $wpdf_elt_tableau;
+		    }
+	    }
+
+	    if ( array_key_exists( $wpdf_nouvelle_adresse, $wpdf_liste_redirections ) ) {
+		    $wpdf_modif_adresse    = true; // une redirection a été trouvée
+		    $wpdf_nouvelle_adresse = '/' . $wpdf_liste_redirections[ $wpdf_nouvelle_adresse ];
+	    }
     }
 
     $wpdf_domaine_site_cible = site_url(); // adresse domaine cible
