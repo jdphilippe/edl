@@ -3,10 +3,14 @@
 class DateUtils {
 
 	private $mp_date_comment = array();
+	private $mp_date_avent = array();
 
-	function __construct() {
-		$currentYear = date("Y");
+
+	public function __construct() {
+		$currentYear = date('Y' );
 		for ($year = 2016; $year <= $currentYear; $year++) {
+			$this->getAdventDates ($year);
+
 			$this->mp_date_comment[ $this->dimanche_rameaux($year) ]     = 'Rameaux';
 			$this->mp_date_comment[ $this->lundi_saint($year) ]          = 'Lundi Saint';
 			$this->mp_date_comment[ $this->mardi_saint($year) ]          = 'Mardi Saint';
@@ -18,35 +22,69 @@ class DateUtils {
 			$this->mp_date_comment[ $this->jeudi_ascension($year) ]      = 'Ascension';
 			$this->mp_date_comment[ $this->dimanche_pentecote($year) ]   = 'Pentecôte';
 			$this->mp_date_comment[ $this->dimanche_reformation($year) ] = 'Réformation';
-			$this->mp_date_comment[ "24/12/$year" ]                      = 'Veillée de Noël';
-			$this->mp_date_comment[ "25/12/$year" ]                      = 'Noël';
+			$this->mp_date_comment[ $this->premier_dimanche_avent() ]           = '1<sup>er</sup> Dim Avent';
+			$this->mp_date_comment[ $this->deuxieme_dimanche_avent() ]          = '2<sup>ème</sup> Dim Avent';
+			$this->mp_date_comment[ $this->troisieme_dimanche_avent() ]         = '3<sup>ème</sup> Dim Avent';
+			$this->mp_date_comment[ $this->quatrieme_dimanche_avent() ]         = '4<sup>ème</sup> Dim Avent';
+			$this->mp_date_comment[ "24/12/$year" ]                             = 'Veillée de Noël';
+			$this->mp_date_comment[ "25/12/$year" ]                             = 'Noël';
 		}
 	}
 
 	public function getComment( $timestamp ) {
-		$date = date( "d/m/Y", $timestamp);
+		$date = date( 'd/m/Y', $timestamp);
 		if ( ! array_key_exists( $date, $this->mp_date_comment ) )
-			return "";
+			return '';
 
-		$year       = date("Y", $timestamp);
+		$year       = date('Y', $timestamp);
 		$day_number = date('N', $timestamp);
-		if ( $date == "24/12/$year" && $day_number == 7) {
+		if ( $date === "24/12/$year" && $day_number === '7') {
 			/*
 			 * Si nous sommes le 24/12 et que ce jour est un dimanche, il y aura deux cultes.
 			 * Seul celui du soir correspond a la veillee
 			 */
-			$time = intval( date( "H", $timestamp ) );
+			$time = (int) date( 'H', $timestamp );
 			if ( $time <= 18 )
-				return "";
+				return '';
 		}
 
 		return $this->mp_date_comment[ $date ];
 	}
 
-	private function dimanche_reformation( $annee ) {
-		$date_reformation = strtotime("last Sunday of October $annee");
+	private function getAdventDates ( $annee): void {
+		$date = mktime(0,0,0,11,25,$annee);
+		$sundays = 0;
+		while ( $sundays < 4 ) {
+			$date = date( 'Y/m/d', $date);
+			$date = strtotime( "$date + 1 days" );
+			$day_number = date('N', $date );
+			if ($day_number === '7') {
+				$this->mp_date_avent[ $sundays ] = date( 'd/m/Y',$date);
+				$sundays++;
+			}
+		}
+	}
 
-		return date("d/m/Y", $date_reformation);
+	private function premier_dimanche_avent() {
+		return $this->mp_date_avent[0];
+	}
+
+	private function deuxieme_dimanche_avent() {
+		return $this->mp_date_avent[1];
+	}
+
+	private function troisieme_dimanche_avent() {
+		return $this->mp_date_avent[2];
+	}
+
+	private function quatrieme_dimanche_avent() {
+		return $this->mp_date_avent[3];
+	}
+
+	private function dimanche_reformation( $annee ) {
+		$date_reformation = strtotime("last Sunday of October $annee" );
+
+		return date('d/m/Y', $date_reformation );
 	}
 
 	private function paques( $Jourj = 0, $annee = NULL ) {
@@ -61,7 +99,7 @@ class DateUtils {
 		 * par défaut c'est l'année en cours.
 		 * */
 
-		$annee = ( $annee == NULL ) ? date("Y") : $annee;
+		$annee = $annee ?? date( 'Y' );
 
 		$G = $annee % 19;
 		$C = floor($annee / 100);
@@ -69,9 +107,9 @@ class DateUtils {
 		$E = floor((8 * $C + 13) / 25);
 		$H = (19 * $G + $C - $C_4 - $E + 15) % 30;
 
-		if ( $H == 29 ) {
+		if ( $H === 29 ) {
 			$H = 28;
-		} else if ( $H == 28 && $G > 10 ) {
+		} else if ( $H === 28 && $G > 10 ) {
 			$H = 27;
 		}
 
@@ -84,75 +122,74 @@ class DateUtils {
 		$J2 = $J1 % 7; //jour de pâques (0=dimanche, 1=lundi....)
 		$R = 28 + $I - $J2; // résultat final :)
 		$mois = $R > 30 ? 4 : 3; // mois (1 = janvier, ... 3 = mars...)
-		$Jour = $mois == 3 ? $R : $R - 31;
+		$Jour = $mois === 3 ? $R : $R - 31;
 
-		return mktime(0,0,0, $mois,$Jour + $Jourj, $annee);
+		return mktime(0,0,0, $mois,$Jour + $Jourj,$annee);
 	}
-
 
 	private function dimanche_paques_internal( $annee ) {
 		$datePaques = $this->paques(0, $annee);
 
-		return date("Y/m/d", $datePaques);
+		return date('Y/m/d', $datePaques);
 	}
 
 	private function dimanche_paques( $annee ) {
 		$dimanche_paques = $this->dimanche_paques_internal( $annee );
 
-		return date("d/m/Y", strtotime( $dimanche_paques) );
+		return date('d/m/Y', strtotime( $dimanche_paques) );
 	}
 
 	private function samedi_saint( $annee ) {
 		$dimanche_paques = $this->dimanche_paques_internal( $annee );
 
-		return date( "d/m/Y", strtotime( "$dimanche_paques - 1 days" ) );
+		return date('d/m/Y', strtotime( "$dimanche_paques - 1 days" ) );
 	}
 
 	private function vendredi_saint( $annee ) {
 		$dimanche_paques = $this->dimanche_paques_internal( $annee );
 
-		return date( "d/m/Y", strtotime( "$dimanche_paques - 2 days" ) );
+		return date('d/m/Y', strtotime( "$dimanche_paques - 2 days" ) );
 	}
 
 	private function jeudi_saint( $annee ) {
 		$dimanche_paques = $this->dimanche_paques_internal( $annee );
 
-		return date( "d/m/Y", strtotime( "$dimanche_paques - 3 days" ) );
+		return date('d/m/Y', strtotime( "$dimanche_paques - 3 days" ) );
 	}
 
 	private function mercredi_saint( $annee ) {
 		$dimanche_paques = $this->dimanche_paques_internal( $annee );
 
-		return date( "d/m/Y", strtotime( "$dimanche_paques - 4 days" ) );
+		return date('d/m/Y', strtotime( "$dimanche_paques - 4 days" ) );
 	}
 
 	private function mardi_saint( $annee ) {
 		$dimanche_paques = $this->dimanche_paques_internal( $annee );
 
-		return date( "d/m/Y", strtotime( "$dimanche_paques - 5 days" ) );
+		return date('d/m/Y', strtotime( "$dimanche_paques - 5 days" ) );
 	}
 
 	private function lundi_saint( $annee ) {
 		$dimanche_paques = $this->dimanche_paques_internal( $annee );
 
-		return date( "d/m/Y", strtotime( "$dimanche_paques - 6 days" ) );
+		return date('d/m/Y', strtotime( "$dimanche_paques - 6 days" ) );
 	}
 
 	private function dimanche_rameaux( $annee ) {
 		$dimanche_paques = $this->dimanche_paques_internal( $annee );
 
-		return date("d/m/Y", strtotime( "$dimanche_paques - 7 days" ) );
+		return date('d/m/Y', strtotime( "$dimanche_paques - 7 days" ) );
 	}
 
 	private function jeudi_ascension( $annee ) {
 		$dimanche_paques = $this->dimanche_paques_internal( $annee );
 
-		return date( "d/m/Y", strtotime( "$dimanche_paques + 39 days" ) );
+		return date('d/m/Y', strtotime( "$dimanche_paques + 39 days" ) );
 	}
 
 	private function dimanche_pentecote( $annee ) {
 		$dimanche_paques = $this->dimanche_paques_internal( $annee );
 
-		return date( "d/m/Y", strtotime( "$dimanche_paques + 49 days" ) );
+		return date('d/m/Y', strtotime( "$dimanche_paques + 49 days" ) );
 	}
 }
