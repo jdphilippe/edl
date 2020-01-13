@@ -28,6 +28,7 @@ class DateUtils {
 			$this->mp_date_comment[ $this->quatrieme_dimanche_avent() ]         = '4<sup>ème</sup> Dim Avent';
 			$this->mp_date_comment[ "24/12/$year" ]                             = 'Veillée de Noël';
 			$this->mp_date_comment[ "25/12/$year" ]                             = 'Noël';
+			$this->mp_date_comment[ '12/01/2020' ]                              = '150 ans, Ep. 1';
 		}
 	}
 
