@@ -28,7 +28,15 @@ class DateUtils {
 			$this->mp_date_comment[ $this->quatrieme_dimanche_avent() ]         = '4<sup>ème</sup> Dim Avent';
 			$this->mp_date_comment[ "24/12/$year" ]                             = 'Veillée de Noël';
 			$this->mp_date_comment[ "25/12/$year" ]                             = 'Noël';
-			$this->mp_date_comment[ '12/01/2020' ]                              = '150 ans, Ep. 1';
+			if ( $year === 2020 ) {
+				$this->mp_date_comment['12/01/2020'] = '150 ans, Ep. 1';  // Batir un temple
+				$this->mp_date_comment['08/03/2020'] = '150 ans, Ep. 4';  // Predication de l'archeveque
+				$this->mp_date_comment['12/04/2020'] = '150 ans, Ep. 12'; // Temple détruit et ressuscité
+				$this->mp_date_comment['24/05/2020'] = '150 ans, Ep. 16'; // Concert - culte (Oratoire du Louvre)
+				$this->mp_date_comment['21/06/2020'] = '150 ans, Ep. 18'; // Culte - fete de la musique
+				$this->mp_date_comment['25/10/2020'] = '150 ans, Ep. 25'; // Culte de la Reformation
+				$this->mp_date_comment['25/12/2020'] = '150 ans, Ep. 30'; // Culte de Noel
+			}
 		}
 	}
 
