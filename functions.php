@@ -1,10 +1,12 @@
 <?php
 
-ini_set('display_errors',1);
-error_reporting(E_ALL);
+if ( WP_DEBUG ) {
+	ini_set( 'display_errors', 1 );
+	error_reporting( E_ALL );
+}
 
-require_once dirname(__FILE__) . "/common/fct_utils.php";
-require_once dirname(__FILE__) . "/common/date_utils.php";
+require_once __DIR__ . '/common/fct_utils.php';
+require_once __DIR__ . '/common/date_utils.php';
 
 /*
  *  activation theme
@@ -15,6 +17,17 @@ function theme_enqueue_styles() {
     wp_enqueue_style('parent-style', get_template_directory_uri() . '/style.css');
 }
 
+/*
+function exclude_category( $query ) {
+	if ( $query->is_home() ) {
+	    $m150_cat = get_category_by_slug('maguelone150ans');
+		$query->set( 'cat', '-' . $m150_cat->term_id );
+	}
+	return $query;
+}
+add_filter( 'pre_get_posts', 'exclude_category' );
+*/
+
 // Affiche la case a cocher "Ne pas envoyer d'email"
 add_filter( 'jetpack_allow_per_post_subscriptions', '__return_true' );
 
@@ -22,7 +35,7 @@ add_filter( 'jetpack_allow_per_post_subscriptions', '__return_true' );
 * On utilise une fonction pour créer notre custom post type 'maguelone150ans'
 */
 
-function pjd_add_post_type_maguelone150ans() {
+function pjd_add_post_type_m150ans() {
 
 	$labels = array (
 		// Le nom au pluriel
@@ -63,7 +76,28 @@ function pjd_add_post_type_maguelone150ans() {
 	// On enregistre notre custom post type qu'on nomme ici "maguelone150ans" et ses arguments
 	register_post_type( 'maguelone150ans', $args );
 }
-add_action( 'init', 'pjd_add_post_type_maguelone150ans', 0 );
+add_action( 'init', 'pjd_add_post_type_m150ans', 0 );
+
+
+function getEventColor_m150ans( $event_type ) {
+
+	$result = '';
+	switch ( $event_type ) {
+		case 'concert':
+			$result = '41ae4a';
+			break;
+
+		case 'conference' :
+			$result = '0056ee';
+			break;
+
+		case 'theologie' :
+			$result = 'd2242b';
+			break;
+	}
+
+	return $result;
+}
 
 function poseidon_footer_text_edl() {
     ?>
@@ -75,7 +109,7 @@ function poseidon_footer_text_edl() {
                 Pour faire un don en ligne suivez <a href="https://www.eglise-protestante-unie.fr/montpellier-p20217/don" target="_blank">ce lien</a>.
             </td>
             <td>
-                Copyright &copy; 2017-<?= date("Y") ?>, tous droits réservés.<br/>
+                Copyright &copy; 2017-<?php echo date('Y' ) ?>, tous droits réservés.<br/>
                 Fièrement propulsé par <a href="http://wordpress.org" title="WordPress">WordPress</a> et <a href="https://themezee.com/themes/poseidon/" title="Poseidon WordPress Theme">Poseidon</a>.
             </td>
             <td>
@@ -86,7 +120,6 @@ function poseidon_footer_text_edl() {
 
     <?php
 }
-
 add_action('poseidon_footer_text', 'poseidon_footer_text_edl');
 
 function my_child_theme_locale() {
@@ -108,17 +141,6 @@ function jqueryscript_in_head() { ?>
 <?php }
 add_action('wp_head', 'jqueryscript_in_head');
 
-/*
-$debug_tags = array();
-add_action( 'all', function ( $tag ) {
-    global $debug_tags;
-    if ( in_array( $tag, $debug_tags ) ) {
-        return;
-    }
-    echo "<pre>" . $tag . "</pre>";
-    $debug_tags[] = $tag;
-} );
-*/
 
 // Cette partie concerne l'ajout du champ "Profession" dans les profile-card des utilisateurs
 
@@ -139,7 +161,7 @@ function addUserOccupationFields($user) {
     <table class='form-table'>
         <tr>
             <th>Profession</th>
-            <td><input type='text' name='occupation' id='occupation' onkeyup='javascript:addSample()' onchange='javascript:addSample()' onblur='javascript:addSample()'
+            <td><input type='text' name='occupation' id='occupation' onkeyup='addSample()' onchange='addSample()' onblur='addSample()'
                        value='<?php echo esc_attr(get_the_author_meta('occupation', $user->ID)); ?>' />
 
                 <p class='description'>
@@ -177,7 +199,7 @@ function my_private_post_filter( $where = '' ) {
 	// Make sure this only applies to loops / feeds on the frontend
 	if (! is_single() && ! is_admin()) {
 		// exclu les articles privees
-        $where = str_replace("OR wppr_posts.post_status = 'private'", "", $where);
+        $where = str_replace("OR wppr_posts.post_status = 'private'", '', $where);
 	}
 
 	return $where;
@@ -189,7 +211,7 @@ function trim_title($title) {
 
 	$title = esc_attr($title);
 
-	if (startsWith($title, "Privé")) {
+	if (startsWith($title, 'Privé' )) {
 	    $title = substr($title, strpos($title, ':') + 1); // +1 blanc
     }
 
@@ -202,7 +224,7 @@ function modify_sermon_title($post_id) {
     $isSermon = false;
     $categories = get_the_category($post_id);
     foreach ($categories as $category) {
-        if ($category->slug == "predication") {
+        if ( $category->slug === 'predication' ) {
             $isSermon = true;
             break;
         }
@@ -213,14 +235,14 @@ function modify_sermon_title($post_id) {
     }
 
     $post = get_post($post_id);
-    if (get_user_role($post->post_author) != "author") {
+    if ( get_user_role($post->post_author) !== 'author' ) {
         return;
     }
 
     $the_author     = get_the_author_meta('display_name', $post->post_author);
     $the_occupation = get_the_author_meta('occupation'  , $post->post_author);
     $title = get_the_title($post->ID);
-    $endTitle = ", par le " . $the_occupation . " " . $the_author;
+    $endTitle = ', par le ' . $the_occupation . ' ' . $the_author;
 
     if (endsWith($title, $endTitle)) {
         return;
@@ -242,30 +264,30 @@ function generateJSONFiles( $post_id ) {
 
     // On ne prend que les articles jsonable
     foreach ($categories as $category) {
-        if ( isJSONable($category->cat_ID) ) {
-            if ( empty (category_has_children($category->cat_ID)) ) {
+        if ( isJSONable($category->term_id) ) {
+            if ( empty (category_has_children($category->term_id)) ) {
                 generateJSONFilesFromCategory( $category );
             } else {
                 // Erreur de selection, on ne doit selectionner que les elements feuilles de la hierarchie 'jsonable',
                 // pour eviter leur affichage dans le widget 'categorie'
-                wp_remove_object_terms( $post_id, $category->cat_ID, "category" );
+                wp_remove_object_terms( $post_id, $category->term_id, 'category' );
             }
         }
     }
 }
 
-add_action('save_post', 'generateJSONFiles'); // 'publish_post'
+add_action('save_post', 'generateJSONFiles');
 
 function generateJSONFilesFromCategory( $jsonableCategory ) {
 
     // Config pour les EB & KT
-    $postStatus = "any";
-    $orderType  = "ASC";
+    $postStatus = 'any';
+    $orderType  = 'ASC';
     $category   = $jsonableCategory->slug;
 
-    if ($category == "predication") {
-        $postStatus = "publish";
-        $orderType  = "DESC";
+    if ( $category === 'predication' ) {
+        $postStatus = 'publish';
+        $orderType  = 'DESC';
     }
 
     generateJSONFile([$category], $orderType, $postStatus, true);
@@ -275,18 +297,18 @@ function generateJSONFilesFromCategory( $jsonableCategory ) {
 function generateJSONFile($categories, $orderType, $postStatus, $isMobile) {
     try {
         $criteria = [
-            "post_type" => "post",
-            "tax_query" => [
+	        'post_type'      => 'post',
+	        'tax_query'      => [
                 [
-                    "taxonomy" => "category",
-                    "field"    => "slug",
-                    "terms"    => $categories
+	                'taxonomy' => 'category',
+	                'field'    => 'slug',
+	                'terms'    => $categories
                 ]
             ],
-            "orderby"        => "post_date",
-            "order"          => $orderType,
-            "post_status"    => $postStatus,
-            'posts_per_page' => '-1'
+	        'orderby'        => 'post_date',
+	        'order'          => $orderType,
+	        'post_status'    => $postStatus,
+	        'posts_per_page' => '-1'
         ];
 
         // Lancement de la recherche
@@ -301,20 +323,20 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile) {
         // Parcours des articles trouves
         foreach ($the_query->posts as $post) {
             $content = apply_filters('the_content', $post->post_content);
-            $biblicalRef = extract_text_from_tag("class", "ref-biblique", $content);
+            $biblicalRef = extract_text_from_tag( 'class', 'ref-biblique', $content);
 
-            $media   = "";
-            $tooltip = "";
-            $title = get_the_title($post->ID);
-            $isPublished = get_post_status($post->ID) == 'publish';
+            $media   = '';
+            $tooltip = '';
+            $title = get_the_title($post);
+            $isPublished = get_post_status($post) === 'publish';
             if ( ! $isMobile ) {
-                $image = get_the_post_thumbnail_url( $post->ID, [ $width, $height ] );
+                $image = get_the_post_thumbnail_url( $post, [ $width, $height ] );
 
                 // On met l'image par defaut si non definie
                 // Concerne les EB annoncées, mais non publiées
-                if ( $image == null || $image === false ) {
-                    $image = $isPublished ? "https://espritdeliberte.leswoody.net/wp-content/uploads/2017/08/v6.png" :
-                            "https://espritdeliberte.leswoody.net/wp-content/uploads/2017/08/vide.png";
+                if ( $image === null || $image === false ) {
+                    $image = $isPublished ? 'https://espritdeliberte.leswoody.net/wp-content/uploads/2017/08/v6.png' :
+	                    'https://espritdeliberte.leswoody.net/wp-content/uploads/2017/08/vide.png';
                 }
 
                 // On place sur la gauche du titre l'image de l'article
@@ -322,36 +344,37 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile) {
                 $title =
                     "<div style='overflow: hidden; max-height: " . $height . "px; float: left' >" .
                         "<img src='" . $image . "' width='" . $width . "px' alt='" . $tooltip . "' />" .
-                    "</div>" .
-                    "<div style='word-wrap: break-word; padding-top: " . $paddingTop . "px; padding-left: " . $paddingLeft . "px; display: inline-flex' >" .
-                        $title .
-                    "</div>";
+                    '</div>' .
+                    "<div style='word-wrap: break-word; padding-top: " . $paddingTop . 'px; padding-left: ' . $paddingLeft . "px; display: inline-flex' >" .
+                    $title .
+                    '</div>';
             }
 
             // Affiche un lien si l'article est publie
             if ( $isPublished ) {
-                $title = "<a href='" . get_post_permalink($post->ID) . "' target='_blank' title='" . $tooltip . "'>" . $title . "</a>";
+                $title = "<a href='" . get_post_permalink($post->ID) . "' target='_blank' title='" . $tooltip . "'>" . $title . '</a>';
                 $media = findMedia($post, $isMobile);
             }
 
             $formatDate  = $isMobile ? 'd/m' : 'd/m/Y';
             $displayDate = get_the_time($formatDate, $post->ID);
-            $timestamp   = get_the_time('G'     , $post->ID);
+            $timestamp   = get_the_time('G'         ,$post->ID);
 
-            if ( ! $isMobile && in_array( "predication", $categories ) ) {
+            if ( ! $isMobile && in_array( 'predication', $categories, true ) ) {
                 $comment = $dateUtils->getComment( $timestamp );
-                if ( $comment != "" )
-	                $displayDate .= '<br><span style="color:chocolate">' . $comment . '</span>';
+                if ( $comment !== '' ) {
+	                $displayDate .= '<br><span style="color: chocolate;">' . $comment . '</span>';
+                }
             }
 
             $data[] = [
-                "date" => [
-                    "display"   => surroundWithDiv($displayDate, true),
-                    "timestamp" => $timestamp
+	            'date'   => [
+		            'display'   => surroundWithDiv($displayDate, true),
+		            'timestamp' => $timestamp
                 ],
-                "title"  => $title,
-                "link"   => surroundWithDiv($media, false),
-                "refbib" => surroundWithDiv($biblicalRef, false)
+	            'title'  => $title,
+	            'link'   => surroundWithDiv($media, false),
+	            'refbib' => surroundWithDiv($biblicalRef, false)
             ];
         }
 
@@ -361,20 +384,20 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile) {
         wp_reset_postdata();
 
         $response = [
-            "draw" => intval($recordsTotal),
-            "recordsTotal" => $recordsTotal,
-            "data" => $data
+	        'draw'         => (int) $recordsTotal,
+	        'recordsTotal' => $recordsTotal,
+	        'data'         => $data
         ];
 
         $json = json_encode($response);
-        $fname = dirname(__FILE__) . "/json/" . join('-', $categories);
+        $fname = __DIR__ . '/json/' . implode('-', $categories);
         if ($isMobile) {
-            $fname .= "_mobile";
+            $fname .= '_mobile';
         }
 
-        $fname .= ".json";
+        $fname .= '.json';
 
-        $fp = fopen($fname, 'w');
+        $fp = fopen($fname, 'wb' );
         if (! $fp) {
             echo "Erreur d'acces au disque !!!";
             return ;
@@ -432,7 +455,7 @@ function wpdf_redirect_par_wp() {
 
     $wpdf_domaine_site_cible = site_url(); // adresse domaine cible
     $query_string = filter_input(INPUT_SERVER, 'QUERY_STRING');
-    $wpdf_param_url = ( strlen($query_string) ) ? '?' . $query_string : ''; //	récupérer le paramétrage de l'url : "?clé = valeur"
+    $wpdf_param_url = ( $query_string !== '' ) ? '?' . $query_string : ''; //	récupérer le paramétrage de l'url : "?clé = valeur"
     $nouvelle_adresse = $wpdf_modif_adresse ? $wpdf_domaine_site_cible . $wpdf_nouvelle_adresse . '/' . $wpdf_param_url : $wpdf_domaine_site_cible;
     wp_redirect(esc_url($nouvelle_adresse), 301);
     exit; // toujours ajouter "exit" après une redirection
@@ -462,59 +485,3 @@ function plugin_esprit_de_liberte_outils() {
 
     echo "<iframe src='" . get_stylesheet_directory_uri() . "/admin/index.php" . "' width='1000' heigth='500' />";
 }
-
-
-/*
-function my_admin_menu() {
-    add_menu_page (
-            'Titre de page',
-            'Esprit de liberté',
-            'manage_options',
-            'myplugin/myplugin-admin-page.php',
-            '', //'myplguin_admin_page',
-            'http://espritdeliberte.leswoody.net/wp-content/uploads/2017/08/w6.svg',
-            2 ); // Juste en dessous de Tableau de bord
-
-    add_submenu_page( 'esprit-de-liberte/esprit-de-liberte.php', 'My Sub Level Menu Example', 'Ajouter un culte', 'manage_options', 'myplugin/myplugin-admin-sub-page.php', 'myplguin_admin_sub_page' );
-    add_submenu_page( 'myplugin/myplugin-admin-page.php', 'My Sub Level Menu Example', 'Générer les tableaux', 'manage_options', 'myplugin/myplugin-admin-sub-page.php', 'myplguin_admin_sub_page' );
-}
-add_action( 'admin_menu', 'my_admin_menu' );
-*/
-
-/*
-function myplguin_admin_page(){
-	?>
-	<div class="wrap">
-		<h2>Welcome To My Plugin</h2>
-	</div>
-	<?php
-}
-
-add_action( 'admin_menu', 'my_admin_menu' );
-*/
-
-/*
-  $COMMON_PATH = get_stylesheet_directory_uri() . "/common";
-
-  require_once $COMMON_PATH . "/createPost.php";
-
-
-  function create_post( $att_id ) {
-
-  $link = wp_get_attachment_link( $att_id );
-  $filename = get_attached_file( $att_id );
-  $ext = pathinfo($filename, PATHINFO_EXTENSION);
-
-  if ( $ext != "mp3" )
-  return;
-
-  //$tag = id3_get_tag( $filename, ID3_V2_3 ); //
-  $tag = wp_get_attachment_metadata( $att_id );
-  print_r ($tag);
-
-  foreach ($tag as $t)
-  echo " val: " . $t;
-  }
-
-  add_action('add_attachment','create_post', 1, 1);
- */

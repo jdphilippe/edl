@@ -6,11 +6,11 @@
     require_once( $parse_uri[0] . 'wp-load.php' );
 
     // On efface les fichiers existants
-    $jsonDir = dirname(__FILE__) . "/../json";
+    $jsonDir = __DIR__ . '/../json';
     if (is_dir($jsonDir)) {
         array_map('unlink', glob("$jsonDir/*.*"));
-    } else {
-        mkdir($jsonDir);
+    } else if ( ! mkdir( $jsonDir ) && ! is_dir( $jsonDir ) ) {
+	    throw new \RuntimeException( sprintf( 'Directory "%s" was not created', $jsonDir ) );
     }
 
     // Recherche des categories heritant de la categorie jsonable
@@ -22,6 +22,6 @@
     foreach ($term_children as $cat_ID) {
         $category = get_term($cat_ID, 'category');
         if (empty ( category_has_children( $cat_ID ) )) {
-            generateJSONFilesFromCategory($category);
+            generateJSONFilesFromCategory( $category );
         }
     }

@@ -1,17 +1,16 @@
 <?php
 
-$COMMON_PATH = get_stylesheet_directory_uri() . "/common";
+$COMMON_PATH = get_stylesheet_directory_uri() . '/common';
 
 // ----------------------- Fonctions generiques -----------------------
 
 function startsWith($haystack, $needle) {
-    $length = strlen($needle);
-    return ( substr($haystack, 0, $length) === $needle );
+    return ( strpos( $haystack, $needle ) === 0 );
 }
 
 function endsWith($haystack, $needle) {
     $length = strlen($needle);
-    if ($length == 0) {
+    if ($length === 0) {
         return true;
     }
 
@@ -24,7 +23,7 @@ function isSermon($post_id) {
     $cats = get_the_category($post_id);
     $found = false;
     foreach ($cats as $c) {
-        if ($c->slug === "predication") {
+        if ( $c->slug === 'predication' ) {
             $found = true;
             break;
         }
@@ -38,16 +37,16 @@ function isSermon($post_id) {
  */
 function getExcerptOfSermon( $post_id ) {
 
-    return ""; // Pas activé pour le moment
+    return ''; // Pas activé pour le moment
 
     // Uniquement valable pour les predications
     if (! isSermon($post_id)) {
-        return "";
+        return '';
     }
 
     $the_post  = get_post($post_id);    // Gets post ID
     $result    = $the_post->post_content;
-    $endString = "</span>";
+    $endString = '</span>';
 
     $sermonStart = strrpos($result, $endString);
     if ($sermonStart === false) {
@@ -62,21 +61,21 @@ function getExcerptOfSermon( $post_id ) {
     if (strlen($result) > $sermonStart + $maxChar) {
     	$result = substr($result, $sermonStart, $maxChar);
         if ($result === false) {
-            $result = "probleme de chaine.";
+            $result = 'probleme de chaine.';
         } else {
             for ($i = $maxChar; $i >= $minChar; $i--) {
-                if (in_array($result{$i -1}, $arrayOfChars)) {
+                if ( in_array( $result{$i - 1}, $arrayOfChars, true ) ) {
                     $result = substr($result, 0, $i);
                     break;
                 }
             }
         }
 
-        $result .= " [...]";
+        $result .= ' [...]';
     }
 
     $count = -1;
-    $result = str_replace("'", "&#39;", $result, $count);
+    $result = str_replace("'", '&#39;', $result, $count);
     return trim( $result );
     //return htmlspecialchars($result, ENT_QUOTES);
 }
@@ -101,8 +100,8 @@ function getExcerptById($post_id) {
 */
 
 function surroundWithDiv($value, $center) {
-    if ($value == "") {
-        return "";
+    if ( $value === '' ) {
+        return '';
     }
 
     $result = "<div style='word-wrap: break-word; overflow: hidden; max-height: 52px"; // ne pas terminer par '
@@ -110,26 +109,26 @@ function surroundWithDiv($value, $center) {
         $result .= " text-align:center; vertical-align:middle;' align='center";
     }
 
-    $result .= "'>" . $value . "</div>";
+    $result .= "'>" . $value . '</div>';
 
     return $result;
 }
 
 // Pour rechercher les textes bibliques dans un post
 function extract_text_from_tag($attr, $value, $string) {
-    $attr  = preg_quote($attr);
-    $value = preg_quote($value);
+    $attr  = preg_quote($attr, null);
+    $value = preg_quote($value, null);
     $pattern = '/<span[^>]*' . $attr . '="' . $value . '">(.*?)<\\/span>/si';
     $matches = [];
     $matchcount = preg_match_all($pattern, $string, $matches);
 
-    $result = "";
+    $result = '';
     for ($i = 0; $i < $matchcount; $i++) {
         if ($i >= 1) {
-            $result = $result . "<br/>";
+            $result .= '<br/>';
         }
 
-        $result = $result . $matches[1][$i];
+        $result .= $matches[1][ $i ];
     }
 
     return $result;
@@ -140,54 +139,56 @@ function extract_text_from_tag($attr, $value, $string) {
 function createLink($link) {
     global $COMMON_PATH;
 
-    $image = "";
-    $text  = "";
+    $image = '';
+    $text  = '';
     $filename = basename($link);
-    if (endsWith($link, "debout-sainte-cohorte.mp3"))
-        return ""; // On ignore les mp3 ajoutes sur les cultes
+    if (endsWith($link, 'debout-sainte-cohorte.mp3' )) {
+	    return ''; // On ignore les mp3 ajoutes sur les cultes
+    }
 
-	if (endsWith($link, "pdf")) {
-        $image = "pdf.png";
-        $text  = "Lire";
-    } else if (endsWith($link, "mp3")) {
-        $image = "button_play.png"; // Pour les EB
-        $text  = "Ecouter";         // Pour les EB
+	if (endsWith($link, 'pdf' )) {
+        $image = 'pdf.png';
+        $text  = 'Lire';
+    } else if (endsWith($link, 'mp3' )) {
+        $image = 'button_play.png'; // Pour les EB
+        $text  = 'Ecouter';         // Pour les EB
 
         if ( (strpos($link, 'predic') !== false) || (strpos($link, 'méditation') !== false) ) {
-            $image = "button_play_predic.png";
-            $text .= " la prédication";
+            $image = 'button_play_predic.png';
+            $text .= ' la prédication';
         } else if (strpos($link, 'culte') !== false) {
-            $text .= " le culte";
+            $text .= ' le culte';
         }
-    } else if (strpos($link, "youtu") !== false) {
-		$filename = "";
-        $image = "tv.png";
-        $text  = "Regarder la prédication";
-        if (strpos($link, "youtu.be") !== false) {
+    } else if ( strpos($link, 'youtu' ) !== false) {
+		$filename = '';
+        $image = 'tv.png';
+        $text  = 'Regarder la prédication';
+        if ( strpos($link, 'youtu.be' ) !== false) {
             // On remplace les liens abreges par des versions longues, car je rencontre des erreurs 404 avec
-            $lastSlash = strrpos($link, "/");
+            $lastSlash = strrpos($link, '/' );
             $endURL = substr($link, $lastSlash + 1);
-            $link = "https://www.youtube.com/watch?v=" . $endURL;
+            $link = 'https://www.youtube.com/watch?v=' . $endURL;
         }
     }
 
-    if ($image == "") {
-        return "";
+    if ( $image === '' ) {
+        return '';
     }
 
-    if (startsWith($link, "http:")) {
-        $link = substr_replace($link, "s", 4, 0); // Pour forcer les liens en HTTPS
+    if (startsWith($link, 'http:' )) {
+        $link = substr_replace($link, 's', 4, 0); // Pour forcer les liens en HTTPS
     }
 
     $href = "<a href='" . $link . "' target='_blank'";
-    if ($filename != "")
-    	$href .= " download='" . $filename . "'";
+    if ( $filename !== '' ) {
+	    $href .= " download='" . $filename . "'";
+    }
 
-    return $href . "><img src='" . $COMMON_PATH . "/images/" . $image . "' style='vertical-align:middle;' alt='" . $text . "' title='" . $text . "'/></a>";
+    return $href . "><img src='" . $COMMON_PATH . '/images/' . $image . "' style='vertical-align:middle;' alt='" . $text . "' title='" . $text . "'/></a>";
 }
 
 function findMedia($post, $isMobile) {
-    $result = "";
+    $result = '';
     $tab    = array();
 
     // Recherche en passant par les API WP
@@ -204,7 +205,7 @@ function findMedia($post, $isMobile) {
         $media = array_unique($media[2]); // Peut y avoir des liens en double. Balise <a href> et [audio]
         foreach ($media as $m) {
             $link = createLink($m);
-            if ($link != "") {
+            if ( $link !== '' ) {
                 $tab[] = $link;
             }
         }
@@ -212,7 +213,7 @@ function findMedia($post, $isMobile) {
 
     $hasVideo = false;
     $content = trim($content);
-    if (startsWith($content, "[youtube ")) {
+    if (startsWith($content, '[youtube ' )) {
         $link = substr( $content, 9, strpos( $content, ']' ) -9 );
         $link = createLink($link);
         $tab[] = $link;
@@ -220,14 +221,14 @@ function findMedia($post, $isMobile) {
     }
 
     if ( empty($tab) ) {
-        return "";
+        return '';
     }
 
     $tab = array_unique($tab);
     asort($tab);
 
     if ( ! $isMobile && isSermon( $post->ID ) ) {
-	    $dummyLink = '<img src="https://espritdeliberte.leswoody.net/wp-content/uploads/2018/07/img_transparente.png" style="vertical-align: middle;" >';
+	    $dummyLink = '<img src="https://espritdeliberte.leswoody.net/wp-content/uploads/2018/07/img_transparente.png" style="vertical-align: middle;"  alt="">';
     	switch ( count($tab) ) {
 		    case 1:
 			    if ( ! strpos($tab[0], 'culte') !== false ) {
@@ -246,24 +247,25 @@ function findMedia($post, $isMobile) {
     }
 
     foreach ( $tab as $mp3 ) {
-        $result .= " " . $mp3;
+        $result .= ' ' . $mp3;
     }
 
     return $result;
 }
 
-function isJSONable( $cat_ID ) {
-    $slug = get_the_category_by_ID($cat_ID);
-    if ($slug == "jsonable") {
+function isCategoryParentOf( $cat_ID, $parentCat ) {
+    $slug = get_the_category_by_ID( $cat_ID );
+    if ( $slug === $parentCat ) {
         return true;
     }
 
     $tab = get_ancestors( $cat_ID, 'category' );
-    if (empty($tab)) {
-        return false;
-    }
 
-    return isJSONable(reset($tab));
+    return empty( $tab ) ? false : isCategoryParentOf( reset($tab), $parentCat );
+}
+
+function isJSONable( $cat_ID ) {
+	return isCategoryParentOf( $cat_ID, 'jsonable' );
 }
 
 function get_last_category_child( $cat_ID ) {
@@ -277,12 +279,10 @@ function get_last_category_child( $cat_ID ) {
 }
 
 function category_has_children( $term_id = 0, $taxonomy = 'category' ) {
-    $children = get_categories( array(
+    return get_categories( array(
         'child_of'      => $term_id,
         'taxonomy'      => $taxonomy,
         'hide_empty'    => false,
         'fields'        => 'ids',
     ));
-
-    return $children;
 }

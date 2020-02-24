@@ -202,3 +202,39 @@ class DateUtils {
 		return date('d/m/Y', strtotime( "$dimanche_paques + 49 days" ) );
 	}
 }
+
+/**
+ * Get posts in range date by a specific custom field(post meta)
+ *
+ * @param string $start start date
+ * @param string $end end date
+ * @param array $cats categories
+ * @param string $ctype
+ *
+ * @return array  of posts
+ */
+function get_posts_between( $start, $end, $cats = [], $ctype = 'post' ) {
+	$args = array (
+		'post_type'      => $ctype,
+		'orderby'        => 'post_date',
+		'post_status'    => 'publish',
+		'cat'            => $cats, // [ 778, 779, 780, 781 ],
+		'posts_per_page' => - 1,
+		'date_query' => array (
+			'before'    => array (
+				'year'  => date( 'Y', $end ),
+				'month' => date( 'm', $end ),
+				'day'   => date( 'd', $end ),
+			),
+			'after'     => array (
+				'year'  => date( 'Y', $start ),
+				'month' => date( 'm', $start ),
+				'day'   => date( 'd', $start ),
+			),
+			'inclusive' => true
+		)
+	);
+
+	$query = new WP_Query($args );
+	return $query->get_posts();
+}

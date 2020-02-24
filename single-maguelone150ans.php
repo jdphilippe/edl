@@ -5,6 +5,7 @@
  * @package Poseidon
  */
 
+$COMMON_PATH = get_stylesheet_directory_uri() . '/common';
 
 function getImgSrc( $field_id ) {
 	$picture = get_field( $field_id );
@@ -15,73 +16,59 @@ function getPastille( $class_name ) {
     return "<canvas id='" . $class_name . "' class='" . $class_name . "'></canvas>";
 }
 
-function getDateTimeColor( $event_type ) {
+function getHtmlTable( $field_id, $field_id_after = '', $isItalic = false, $isBold = false ) {
+	$result = '<table><tbody>';
 
-	$result = "";
-    switch ( $event_type ) {
-        case "concert":
-	        $result = "41ae4a";
-	        break;
+	$content = strip_tags(get_field($field_id ) );
+	$contentTab = explode("\n", $content);
+	$afterContentTab = array();
+	if ( $field_id_after !== '' ) {
+		$afterContent = strip_tags(get_field($field_id_after ) );
+		$afterContentTab = explode("\n", $afterContent);
+	}
 
-        case "conference" :
-	        $result = "0056ee";
-	        break;
+	$i = 0;
+	foreach ( $contentTab as $line ) {
+		if ( empty( $line ) ) {
+			continue;
+		}
 
-        case "theologie" :
-	        $result =  "d2242b";
-	        break;
-    }
+		$result .= "<tr><td class='li-" . $field_id . "'>" . $line . '</td>';
 
-    return $result;
+		if ( ! empty( $afterContentTab[ $i ] ) ) {
+			$styleAttr = 'text-align: right; ';
+			if ( $isItalic ) {
+				$styleAttr .= ' font-style: italic;';
+			}
+
+			if ( $isBold ) {
+				$styleAttr .= ' font-weight: bold;';
+			}
+
+			$result .= "<td style='" . $styleAttr . "'>" . $afterContentTab[ $i ] . '</td>';
+		}
+
+		$result .= '</tr>';
+		$i++;
+	}
+
+	$result .= '</tbody></table>';
+
+	return $result;
 }
 
-function getHtmlList( $field_id, $field_id_after = "", $isItalic = false ) {
-    $result = "<ul>";
-
-    $content = strip_tags(get_field($field_id ) );
-    $contentTab = explode("\n", $content);
-    $afterContentTab = array();
-    if ( $field_id_after != "" ) {
-        $afterContent = strip_tags(get_field($field_id_after ) );
-        $afterContentTab = explode("\n", $afterContent);
-    }
-
-    $i = 0;
-    foreach ( $contentTab as $line ) {
-        if ( empty( $line ) )
-            continue;
-
-        $result .= "<li class='li-" . $field_id . "'>" . $line . "</li>";
-
-        // Le texte en after
-        if (! empty( $afterContentTab[ $i ] ) ) {
-            $styleAttr = "text-align: right; width: 100%;";
-            if ( $isItalic )
-                $styleAttr .= " font-style: italic;";
-
-            $result .= "<div style='" . $styleAttr . "'>" . $afterContentTab[ $i ] . "</div>";
-        }
-
-        $i++;
-    }
-
-    $result .= "</ul>";
-    return $result;
-}
-
-$COMMON_PATH = get_stylesheet_directory_uri() . "/common";
 
 get_header(); ?>
 
 <!-- librairie pour gerer le nuage de mot -->
-<link rel='stylesheet' type='text/css' href='<?php echo $COMMON_PATH . "/styles/jqcloud.css"; ?>' />
-<script type='text/javascript' src='<?php echo $COMMON_PATH . "/scripts/jqcloud.js"; ?>' ></script>
+<link rel='stylesheet' type='text/css' href='<?php echo $COMMON_PATH . '/styles/jqcloud.css'; ?>' />
+<script type='text/javascript' src='<?php echo $COMMON_PATH . '/scripts/jqcloud.js'; ?>' ></script>
 
 <style>
     .entry-meta,  /*    Permet de cacher la date, l'heure et le nom de l'auteur de l'article, pour éviter les confusions avec les dates, heures et noms des conférenciers et des conférences */
     .entry-tags,  /*    Permet de cacher les etiquettes */
-    .entry-footer, /*   Permet de cacher l'entete de navigation (sous la photo) avec les 2 hr */
-    .jp-relatedposts /* Permet de cacher les posts similaires */ {
+    .entry-footer /*    Permet de cacher l'entete de navigation (sous la photo) avec les 2 hr */
+        /* .jp-relatedposts Permet de cacher les posts similaires */ {
         display: none;
     }
 
@@ -152,10 +139,11 @@ get_header(); ?>
     .title-event {
         text-align: right;
     }
-</style>
 
-<section id="primary" class="content-area">
-    <main id="main" class="site-main" role="main">
+    table td {
+        border: 0;
+    }
+</style>
 
     <?php while ( have_posts() ) : the_post();
         get_template_part( 'template-parts/content', 'single' );
@@ -164,57 +152,64 @@ get_header(); ?>
 
         // Recupere les dates et heures + formatage
         $dtEvent      = get_field('start_date_time_event');
-        $dtColorEvent = getDateTimeColor($event_type );
+        $dtColorEvent = getEventColor_m150ans($event_type );
         $dtEndEvent   = get_field( 'end_date_time_event' );
-        if ( $dtEndEvent != "") {
-	        $dtEvent = "du " . $dtEvent . " au " . $dtEndEvent;
+        if ( $dtEndEvent !== '' ) {
+            $dtEndEvent = str_replace('à ', '', $dtEndEvent); // Enleve le second à
+	        $dtEvent = 'du ' . $dtEvent . ' au ' . $dtEndEvent;
         }
 
-        $dtEvent = "<span style='color: #" . $dtColorEvent . ";'>" . $dtEvent . "</span>";
-        $pastille = getPastille("pastilleLeft" );
+        $dtEvent = "<span style='font-size: 1.3em; color: #" . $dtColorEvent . ";'>" . $dtEvent . '</span>';
+        $pastille = getPastille( 'pastilleLeft' );
         $leftValue = $pastille . $dtEvent;
 
         $speakerValue = get_field('speaker_name' );
         $speakerRole =  get_field('speaker_role' );
-        if ($speakerRole != "")
-            $speakerValue .= ", " . $speakerRole;
-
-        $speakerValue = "<span style='font-size: 1.3em;' >" . $speakerValue . "</span>";
-        $rightValue = $speakerValue . getPastille("pastilleRight" );
-
-        $bioValue = getHtmlList( 'speaker_bio' );
-
-        $agendaValue = getHtmlList( 'agenda', 'agenda_info', true );
-
-        $bookValue = getHtmlList("book_title", "book_info" );
-
-        $urlContent = "";
-        $urlValue = get_field( 'event_booking_url' );
-        if ( $urlValue != "" ) {
-            $urlContent = "<ul>";
-            $urlContent .= "<li class=\"li-event_booking_url\"><a target=\"_blank\" href=\"$urlValue\">Cliquer ici pour réserver</a></li>";
-            $urlContent .= "</ul>";
+        if ( $speakerRole !== '' ) {
+	        $speakerValue .= ', ' . $speakerRole;
         }
 
-        $title_event = get_field("event_title");
-        if ( empty( $title_event ) )
-            $title_event = get_the_title();
+        $speakerValue = "<span style='font-size: 1.3em;' >" . $speakerValue . '</span>';
+        $rightValue = $speakerValue . getPastille( 'pastilleRight' );
 
-        $title_event = "<div class='title-event'><h4>&laquo; " . $title_event . " &raquo;</h4></div>";
+        $bioValue = getHtmlTable( 'speaker_bio' );
 
-        $tags = get_field("event_tags" );
+        $agendaValue = getHtmlTable( 'agenda', 'agenda_info', false, true );
+
+        $bookValue = getHtmlTable( 'book_title', 'book_info' );
+
+        $urlContent = '';
+        $urlValue = get_field( 'event_booking_url' );
+        if ( $urlValue !== '' ) {
+            $urlContent = '<ul>';
+            $urlContent .= "<li class=\"li-event_booking_url\"><a target=\"_blank\" href=\"$urlValue\">Cliquer ici pour réserver</a></li>";
+            $urlContent .= '</ul>';
+        }
+
+	    $commentaire = get_field( 'commentaire' );
+
+        $title_event = get_field( 'event_title' );
+        if ( empty( $title_event ) ) {
+	        $title_event = get_the_title();
+        }
+
+        $title_event = "<div class='title-event'><h4>&laquo; " . $title_event . ' &raquo;</h4></div>';
+
+        $tags = get_field( 'event_tags' );
         $tags = explode("\n", $tags);
 
-        $jsCode = "";
+        $jsCode = '';
         foreach ( $tags as $tag ) {
-            if ( empty( $tag ))
-                continue;
-
-            if (! empty($jsCode)) {
-                $jsCode .= ",";
+            if ( empty( $tag )) {
+	            continue;
             }
 
-            $jsCode .= "{ text:'" . str_replace( "\r", "", $tag ) . "', weight: ". random_int( 1, 10 ) . " }";
+            if (! empty($jsCode)) {
+                $jsCode .= ',';
+            }
+
+            $tag = str_replace( "'", "\'", $tag);
+            $jsCode .= "{ text:'" . str_replace( "\r", '', $tag ) . "', weight: " . random_int( 1, 10 ) . ' }';
         }
         ?>
 
@@ -278,20 +273,16 @@ get_header(); ?>
                     <div id="event_title"><?php echo $title_event; ?></div>
                     <br>
                     <div id="event_booking_url"><?php echo $urlContent; ?></div>
+                    <div id="commentaire"><?php echo $commentaire; ?></div>
+                    <br>
                 </div>
             </div>
         </div>
 
         <?php
-        // poseidon_related_posts();
-
-        // comments_template();
 
     endwhile; ?>
 
-    </main><!-- #main -->
-</section><!-- #primary -->
-
-<?php get_sidebar();
+<?php
 
 get_footer();
