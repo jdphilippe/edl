@@ -98,6 +98,25 @@ if ( have_posts() ) { ?>
     </style>
 
     <div id="post-wrapper" class="post-wrapper clearfix">
+
+        <div id="headimg" class="header-image featured-image-header">
+            <img src="https://espritdeliberte.leswoody.net/wp-content/uploads/2019/11/logo150ans-1182x480.jpg" class="attachment-poseidon-header-image size-poseidon-header-image wp-post-image" alt="" width="1182" height="480">
+        </div>
+
+        <br>
+        <center> <i>Le temple de la rue de Maguelone est un lieu au cœur de Montpellier.</i> </center>
+        <p>
+        Depuis 1870, il permet à la communauté protestante de se rassembler pour y célébrer un culte ouvert sur la vie.
+        C’est un lieu pour la musique, pour des expositions, des conférences, pour penser la vie et la célébrer en toute fraternité.
+        C’est un lieu qui a connu la militance pour la laïcité, la résistance au totalitarisme, l’action pour l’égalité homme-femme.
+        C’est un lieu qui œuvre pour le respect de la création, pour l’accueil inconditionnel des personnes.
+        C’est un lieu pour transcender les clivages et apprendre l’art de vivre ensemble.
+        C’est un lieu pour porter la vie à son incandescence.
+        </p>
+        <p align="center">
+            C’est cela que nous voulons fêter avec vous tout au long de cette année 2020.<br>
+        <b>Le programme au format PDF est <a download href="https://espritdeliberte.leswoody.net/wp-content/uploads/2019/12/LIVRET-150-ANS-FINALISE-low.pdf">téléchargeable ici</a></b>
+        </p>
         <table>
             <thead>
                 <tr align="center">
