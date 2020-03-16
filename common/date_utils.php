@@ -32,14 +32,20 @@ class DateUtils {
 			if ( $year === 2020 ) {
 				$this->mp_date_comment['12/01/2020'] = '150 ans, Ep. 1';  // Batir un temple
 				$this->mp_date_comment['08/03/2020'] = '150 ans, Ep. 4';  // Predication de l'archeveque
+				/*
 				$this->mp_date_comment['12/04/2020'] = '150 ans, Ep. 12'; // Temple détruit et ressuscité
 				$this->mp_date_comment['24/05/2020'] = '150 ans, Ep. 16'; // Concert - culte (Oratoire du Louvre)
 				$this->mp_date_comment['21/06/2020'] = '150 ans, Ep. 18'; // Culte - fete de la musique
 				$this->mp_date_comment['25/10/2020'] = '150 ans, Ep. 25'; // Culte de la Reformation
 				$this->mp_date_comment['25/12/2020'] = '150 ans, Ep. 30'; // Culte de Noel
-
+				*/
 				$this->mp_cancelled_date['17/03/2020'] = 'Evénement reporté';
 				$this->mp_cancelled_date['21/03/2020'] = 'Evénement annulé';
+				// Evenement de Paques
+				$this->mp_cancelled_date['07/04/2020'] = 'Evénement annulé';
+				$this->mp_cancelled_date['08/04/2020'] = 'Evénement annulé';
+				$this->mp_cancelled_date['09/04/2020'] = 'Evénement annulé';
+				$this->mp_cancelled_date['12/04/2020'] = 'Evénement reporté';
 			}
 		}
 	}
