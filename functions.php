@@ -420,9 +420,11 @@ function wpdf_redirect_par_wp() {
     // Pour ne pas casser les anciens liens
     // Anciennes URL  =>   Nouvelles URL
     $wpdf_liste_redirections = [
-        '/2016/12/24/contact'     => 'contact',          // Premiere page contact, il y a des liens dans FB
+        '/2016/12/24/contact'     => 'contact',           // Premiere page contact, il y a des liens dans FB
         '/liste-des-predications' => 'page-des-cultes',
-        '/etudes-bibliques'       => 'etude-biblique'    // 06/10/2017
+        '/etudes-bibliques'       => 'etude-biblique',    // 06/10/2017
+	    '/wp-content/uploads/2019/12/LIVRET-150-ANS-FINALISE-low.pdf' => 'maguelone-150-ans',
+		'/2019/12/17/au-programme-des-150-ans-du-temple-de-maguelone' => 'maguelone-150-ans',
     ];
 
     $wpdf_explode_request = explode('/', $wp->request); // rechercher les redirections génériques
@@ -430,11 +432,12 @@ function wpdf_redirect_par_wp() {
     $wpdf_modif_adresse = false; // indique si une redirection a été trouvée dans le tableau
 
     // Ajout d'un patch pour corriger les liens de la lettre Mailship pour Maguelone 150 ans
-    if ( $wpdf_explode_request[0] === '2019' && $wpdf_explode_request[1] === '12' ) {
+	/*
+    if (  $wpdf_explode_request[0] === '2019' && $wpdf_explode_request[1] === '12' ) {
 	    $wpdf_explode_request[2] = '17';
 	    $wpdf_nouvelle_adresse = '/' . implode( '/', $wpdf_explode_request );
 	    $wpdf_modif_adresse = true;
-    }
+    }*/
 
     if (! $wpdf_modif_adresse) {
 	    foreach ( $wpdf_explode_request as $wpdf_elt_tableau ) {

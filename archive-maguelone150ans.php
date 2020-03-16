@@ -105,6 +105,16 @@ if ( have_posts() ) { ?>
 
         <br>
         <center> <i>Le temple de la rue de Maguelone est un lieu au cœur de Montpellier.</i> </center>
+        <p style="color: chocolate">
+        Chers amis, chers Frères et Soeurs</><br>
+            <br>
+            Suite aux annonces du Président de la République et de son Premier Ministre,<br>
+            nous sommes contraints d'annuler dans l'immédiat quelques rencontres inscrites à l'agenda de cette fête.<br>
+            Nous ferons notre possible pour simplement les reporter, et nous vous tiendrons informés, le cas échéant, des nouvelles dates.<br>
+            D'ici là, portez-vous bien et prenez soin de vous.<br>
+            <br>
+            L'équipe des 150 ans !
+        </p>
         <p>
         Depuis 1870, il permet à la communauté protestante de se rassembler pour y célébrer un culte ouvert sur la vie.
         C’est un lieu pour la musique, pour des expositions, des conférences, pour penser la vie et la célébrer en toute fraternité.
@@ -115,7 +125,8 @@ if ( have_posts() ) { ?>
         </p>
         <p align="center">
             C’est cela que nous voulons fêter avec vous tout au long de cette année 2020.<br>
-        <b>Le programme au format PDF est <a download href="https://espritdeliberte.leswoody.net/wp-content/uploads/2019/12/LIVRET-150-ANS-FINALISE-low.pdf">téléchargeable ici</a></b>
+<!--            <b>Le programme au format PDF est <a download href="https://espritdeliberte.leswoody.net/wp-content/uploads/2019/12/LIVRET-150-ANS-FINALISE-low.pdf">téléchargeable ici</a></b> -->
+            <s>Le programme au format PDF est téléchargeable ici</s>
         </p>
         <table>
             <thead>
@@ -129,6 +140,8 @@ if ( have_posts() ) { ?>
             </thead>
             <tbody>
                 <?php
+
+                $dtUtil = new DateUtils();
 
                 // Recherche de la categorie m150ans et des sous-catégories.
                 // La recherche du post de replay exclue systématiquement ces catégories, il faut les rajouter si on veut les voir apparaitre.
@@ -162,8 +175,15 @@ if ( have_posts() ) { ?>
 	                $pelletClassname = 'pellet';
 	                $textColor = $dtColorEvent;
 
+                    $cancelledDate = $dtUtil->getCancelledDateComment($dateEventTS);
+                    $isCancelled   = ( $cancelledDate !== '' );
+	                if ( $isCancelled ) {
+		                $textColor = '#000000';
+		                $dtColorEvent = '#000000';
+	                }
+
 	                $replayPost = $post;
-	                if ( $dateEventTS < $todayTS ) { // Si la date est passée
+	                if ( ! $isCancelled && $dateEventTS < $todayTS ) { // Si la date est passée
 		                $pelletClassname .= ' checkmark';
 		                $textColor        = '#696969'; // gris
 
@@ -189,8 +209,16 @@ if ( have_posts() ) { ?>
                         }
 	                }
 
-	                $title_event = "<a href='" . get_the_permalink( $replayPost ) .
-                                        "' style='color: " . $textColor . "' target='_blank'>" . getTitle( $replayPost ) . '</a>';
+	                if ( $isCancelled ) {
+		                $dateEvent    = '<del>' . $dateEvent . '</del>';
+		                $timeEvent    = '<del>' . $timeEvent . '</del>';
+		                $title_event  = '<del>' . getTitle( $replayPost ) . '</del>' . ' : ' . $cancelledDate;
+		                $speakerValue = '<del>' . $speakerValue . '</del>';
+	                } else {
+		                $title_event = "<a href='" . get_the_permalink( $replayPost ) .
+		                               "' style='color: " . $textColor . "' target='_blank'>" . getTitle( $replayPost ) . '</a>';
+                    }
+
                     ?>
 
                     <tr class="ligne">
