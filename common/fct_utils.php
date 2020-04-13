@@ -187,6 +187,11 @@ function createLink($link) {
     return $href . "><img src='" . $COMMON_PATH . '/images/' . $image . "' style='vertical-align:middle;' alt='" . $text . "' title='" . $text . "'/></a>";
 }
 
+function isVideo( $media )
+{
+	return strpos( $media, 'youtu' ) !== false;
+}
+
 function findMedia($post, $isMobile) {
     $result = '';
     $tab    = array();
@@ -205,13 +210,13 @@ function findMedia($post, $isMobile) {
         $media = array_unique($media[2]); // Peut y avoir des liens en double. Balise <a href> et [audio]
         foreach ($media as $m) {
             $link = createLink($m);
-            if ( $link !== '' ) {
-                $tab[] = $link;
+            if ( $link !== '' && ! isVideo($link )) {
+		        $tab[] = $link;
             }
         }
     }
 
-    $hasVideo = false;
+	$hasVideo = false;
     $content = trim($content);
     if (startsWith($content, '[youtube ' )) {
         $link = substr( $content, 9, strpos( $content, ']' ) -9 );
