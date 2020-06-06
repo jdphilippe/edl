@@ -31,6 +31,7 @@ add_filter( 'pre_get_posts', 'exclude_category' );
 // Affiche la case a cocher "Ne pas envoyer d'email"
 add_filter( 'jetpack_allow_per_post_subscriptions', '__return_true' );
 
+
 /*
 * On utilise une fonction pour créer notre custom post type 'maguelone150ans'
 */
@@ -77,6 +78,69 @@ function pjd_add_post_type_m150ans() {
 	register_post_type( 'maguelone150ans', $args );
 }
 add_action( 'init', 'pjd_add_post_type_m150ans', 0 );
+
+function pjd_add_post_type_external_post() {
+
+	$labels = array (
+		// Le nom au pluriel
+		'name'                => _x( 'Articles externes', 'Post Type General Name'),
+		// Le nom au singulier
+		'singular_name'       => _x( 'Article externe', 'Post Type Singular Name'),
+		// Le libellé affiché dans le menu
+		'menu_name'           => __( 'Articles externes'),
+
+		// Les différents libellés de l'administration
+		'all_items'           => __( 'Tous les articles'),
+		'view_item'           => __( 'Voir les articles'),
+		'add_new_item'        => __( 'Ajouter un nouvel article'),
+		'add_new'             => __( 'Ajouter'),
+		'edit_item'           => __( "Editer l'article"),
+		'update_item'         => __( "Modifier l'article"),
+		'search_items'        => __( 'Rechercher un article'),
+		'not_found'           => __( 'Non trouvé'),
+		'not_found_in_trash'  => __( 'Non trouvé dans la corbeille'),
+	);
+
+	$args = array (
+		'label'               => __( 'Articles externes'),
+		'description'         => __( 'Tous les articles externes'),
+		'labels'              => $labels,
+
+		// On définit les options disponibles dans l'éditeur de notre custom post type ( un titre, un auteur...)
+		'supports'            => array ( 'title', 'author', 'thumbnail', 'comments', 'revisions', 'custom-fields' ),
+
+		/*
+		* Différentes options supplémentaires
+		*/
+		'show_in_rest'        => true,
+		'hierarchical'        => false,
+		'public'              => true,
+		'has_archive'         => true,
+		'rewrite'			  => array( 'slug' => 'article-externe')
+	);
+
+	// On enregistre notre custom post type qu'on nomme ici "article-externe" et ses arguments
+	register_post_type( 'article-externe', $args );
+}
+add_action( 'init', 'pjd_add_post_type_external_post', 0 );
+
+add_action( 'pre_get_posts', 'add_external_post_type_to_query' );
+
+/**
+ *  Permet d'ajouter les articles externes dans la home page
+ *
+ * @param $query
+ *
+ * @return mixed
+ */
+function add_external_post_type_to_query( $query ) {
+
+	if ( is_home() && $query->is_main_query() ) {
+		$query->set( 'post_type', array( 'post', 'article-externe' ) );
+	}
+
+	return $query;
+}
 
 
 function getEventColor_m150ans( $event_type ) {
