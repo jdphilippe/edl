@@ -16,7 +16,7 @@ function isMobile() {
     return wp_is_mobile();
 }
 
-$inc_common_ui = dirname(__FILE__) . "/../common/common" . ( isMobile() ? "_mobile" : "" ) . ".php"; // pour inclure common.php ou common_mobile.php selon le cas
+$inc_common_ui = __DIR__ . "/../common/common" . ( isMobile() ? "_mobile" : "" ) . ".php"; // pour inclure common.php ou common_mobile.php selon le cas
 require_once $inc_common_ui;
 
 
@@ -132,7 +132,7 @@ $cat_calling = end( $tab );
                 ],
                 columnDefs: [
                     {width: dateColWidth, targets: 0}, // Date
-                    {width: 65          , targets: 2}, // Liens 52
+                    {width: 87          , targets: 2}, // Liens 65
                     {width: 170         , targets: 3}  // Texte a l'etude
                 ],
                 initComplete: function () {
