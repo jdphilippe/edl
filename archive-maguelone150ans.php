@@ -105,6 +105,7 @@ if ( have_posts() ) { ?>
 
         <br>
         <center> <i>Le temple de la rue de Maguelone est un lieu au cœur de Montpellier.</i> </center>
+<!--
         <p style="color: chocolate">
         Chers amis, chers Frères et Soeurs</><br>
             <br>
@@ -115,6 +116,7 @@ if ( have_posts() ) { ?>
             <br>
             L'équipe des 150 ans !
         </p>
+-->
         <p>
         Depuis 1870, il permet à la communauté protestante de se rassembler pour y célébrer un culte ouvert sur la vie.
         C’est un lieu pour la musique, pour des expositions, des conférences, pour penser la vie et la célébrer en toute fraternité.

@@ -124,11 +124,14 @@ function extract_text_from_tag($attr, $value, $string) {
 
     $result = '';
     for ($i = 0; $i < $matchcount; $i++) {
-        if ($i >= 1) {
+        if (strlen( $result) > 0) {
             $result .= '<br/>';
         }
 
-        $result .= $matches[1][ $i ];
+        // Enleve un eventuel <br />\n en debut de chaine (la ref biblique commence par un retour a la ligne)
+        $tmp = strip_tags($matches[1][ $i ]);
+        $tmp = trim( $tmp );
+        $result .= $tmp;
     }
 
     return $result;

@@ -52,7 +52,10 @@ class DateUtils {
 				$this->mp_cancelled_date['23/05/2020'] = 'Evénement annulé';
 				$this->mp_cancelled_date['24/05/2020'] = 'Evénement reporté';
 				$this->mp_cancelled_date['05/06/2020'] = 'Evénement annulé';
-				$this->mp_cancelled_date['21/06/2020'] = 'Evénement annulé';
+				$this->mp_cancelled_date['22/09/2020'] = 'Evénement annulé';
+				$this->mp_cancelled_date['03/10/2020'] = 'Evénement annulé';
+				$this->mp_cancelled_date['06/11/2020'] = 'Evénement annulé';
+				$this->mp_cancelled_date['23/11/2020'] = 'Evénement annulé';
 			}
 		}
 	}

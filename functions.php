@@ -170,7 +170,7 @@ function poseidon_footer_text_edl() {
         <tr>
             <td>
                 <a href="https://espritdeliberte.leswoody.net/contact/" target="_blank">Contact</a><br/>
-                Pour faire un don en ligne suivez <a href="https://www.eglise-protestante-unie.fr/montpellier-p20217/don" target="_blank">ce lien</a>.
+                Pour faire un don en ligne suivez <a href="https://www.eglise-protestante-unie.fr/montpellier-centre-ville-p2021A/don" target="_blank">ce lien</a>.
             </td>
             <td>
                 Copyright &copy; 2017-<?php echo date('Y' ) ?>, tous droits réservés.<br/>
