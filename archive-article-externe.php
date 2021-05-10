@@ -100,7 +100,7 @@ $theme_options = poseidon_theme_options();
 		            $title = addslashes( "<a href='" . get_post_permalink($post->ID) . "' target='_blank' title='" . $tooltip . "'>" . $title . '</a>' );
 
 	                $date           = get_field('date');
-                    $mediaName      = get_field('nom_du_media');
+                    $mediaName      = esc_attr( get_field('nom_du_media') );
                     $mediaTypeCB    = get_field('type_de_media');
                     $link           = get_field('lien');
 
