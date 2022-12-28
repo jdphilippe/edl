@@ -170,14 +170,14 @@ function poseidon_footer_text_edl() {
         <tr>
             <td>
                 <a href="https://espritdeliberte.leswoody.net/contact/" target="_blank">Contact</a><br/>
-                Pour faire un don en ligne suivez <a href="https://www.eglise-protestante-unie.fr/montpellier-centre-ville-p2021A/don" target="_blank">ce lien</a>.
+                Pour faire un don, suivez <a href="https://espritdeliberte.leswoody.net/donner" target="_blank">ce lien</a>.
             </td>
             <td>
                 Copyright &copy; 2017-<?php echo date('Y' ) ?>, tous droits réservés.<br/>
-                Fièrement propulsé par <a href="http://wordpress.org" title="WordPress">WordPress</a> et <a href="https://themezee.com/themes/poseidon/" title="Poseidon WordPress Theme">Poseidon</a>.
+                Propulsé par <a href="http://wordpress.org" title="WordPress">WordPress</a> et <a href="https://themezee.com/themes/poseidon/" title="Poseidon WordPress Theme">Poseidon</a>.
             </td>
             <td>
-                Si vous voulez nous faire part d'une suggestion ou signaler un problème, écrivez à <a href="mailto:webmaster@leswoody.net" title="Envoyer un email">webmaster @ leswoody.net</a>.
+                Si vous voulez nous faire part d'une suggestion<br> ou signaler un problème, écrivez à <a href="mailto:webmaster@leswoody.net" title="Envoyer un email">webmaster @ leswoody.net</a>.
             </td>
         </tr>
     </table>
@@ -358,6 +358,27 @@ function generateJSONFilesFromCategory( $jsonableCategory ) {
     generateJSONFile([$category], $orderType, $postStatus, false);
 }
 
+/**
+ * La fonction raccourcirChaine() permet de réduire une chaine trop longue
+ * passée en paramètre.
+ *
+ * Si la troncature a lieu dans un mot, la fonction tronque à l'espace suivant.
+ *
+ * @param : string $chaine le texte trop long à tronquer
+ * @param : integer $tailleMax la taille maximale de la chaine tronquée
+ * @return : string
+ */
+function raccourcirChaine($chaine, $tailleMax) {
+
+    if ( strlen($chaine) > $tailleMax ) {
+        $chaine = substr($chaine,0, $tailleMax);
+        $positionDernierEspace = strrpos($chaine,' ');
+        $chaine = substr($chaine,0, $positionDernierEspace) . ' [...]';
+    }
+
+    return $chaine;
+}
+
 function generateJSONFile($categories, $orderType, $postStatus, $isMobile) {
     try {
         $criteria = [
@@ -403,8 +424,12 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile) {
 	                    'https://espritdeliberte.leswoody.net/wp-content/uploads/2017/08/vide.png';
                 }
 
-                // On place sur la gauche du titre l'image de l'article
                 $tooltip = $title;
+
+                // Si le titre est trop long, on garde que les 110 premier caractères et on ajoute [...]
+                $title = raccourcirChaine($title, 110);
+
+                // On place sur la gauche du titre l'image de l'article
                 $title =
                     "<div style='overflow: hidden; max-height: " . $height . "px; float: left' >" .
                         "<img src='" . $image . "' width='" . $width . "px' alt='" . $tooltip . "' />" .
@@ -474,6 +499,7 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile) {
     }
 }
 
+
 function wpdf_redirect_par_wp() {
     global $wp;
 
@@ -489,6 +515,7 @@ function wpdf_redirect_par_wp() {
         '/etudes-bibliques'       => 'etude-biblique',    // 06/10/2017
 	    '/wp-content/uploads/2019/12/LIVRET-150-ANS-FINALISE-low.pdf' => 'maguelone-150-ans',
 		'/2019/12/17/au-programme-des-150-ans-du-temple-de-maguelone' => 'maguelone-150-ans',
+        '/donner' => 'https://epudf-montpellier.s2.yapla.com/fr/don/donate/soutenir-leglise-protestante-unie-de-montpellier/3344/' //'https://www.eglise-protestante-unie.fr/montpellier-centre-ville-p2021A/don'
     ];
 
     $wpdf_explode_request = explode('/', $wp->request); // rechercher les redirections génériques
@@ -503,7 +530,7 @@ function wpdf_redirect_par_wp() {
 	    $wpdf_modif_adresse = true;
     }*/
 
-    if (! $wpdf_modif_adresse) {
+    //if (! $wpdf_modif_adresse) {
 	    foreach ( $wpdf_explode_request as $wpdf_elt_tableau ) {
 		    if ( array_key_exists( $wpdf_nouvelle_adresse . '/' . $wpdf_elt_tableau . '*', $wpdf_liste_redirections ) ) {
 			    $wpdf_modif_adresse    = true; // une redirection a été trouvée
@@ -516,15 +543,24 @@ function wpdf_redirect_par_wp() {
 
 	    if ( array_key_exists( $wpdf_nouvelle_adresse, $wpdf_liste_redirections ) ) {
 		    $wpdf_modif_adresse    = true; // une redirection a été trouvée
-		    $wpdf_nouvelle_adresse = '/' . $wpdf_liste_redirections[ $wpdf_nouvelle_adresse ];
+            $wpdf_nouvelle_adresse =  $wpdf_liste_redirections[$wpdf_nouvelle_adresse];
+            if (filter_var($wpdf_nouvelle_adresse, FILTER_VALIDATE_URL) === FALSE) {
+                $wpdf_nouvelle_adresse = '/' . $wpdf_nouvelle_adresse;
+            }
 	    }
+    //}
+
+    if (filter_var($wpdf_nouvelle_adresse, FILTER_VALIDATE_URL) !== FALSE) {
+        wp_redirect(esc_url($wpdf_nouvelle_adresse), 301);
+    }
+    else {
+        $wpdf_domaine_site_cible = site_url(); // adresse domaine cible
+        $query_string = filter_input(INPUT_SERVER, 'QUERY_STRING');
+        $wpdf_param_url = ($query_string !== '') ? '?' . $query_string : ''; //	récupérer le paramétrage de l'url : "?clé = valeur"
+        $nouvelle_adresse = $wpdf_modif_adresse ? $wpdf_domaine_site_cible . $wpdf_nouvelle_adresse . '/' . $wpdf_param_url : $wpdf_domaine_site_cible;
+        wp_redirect(esc_url($nouvelle_adresse), 301);
     }
 
-    $wpdf_domaine_site_cible = site_url(); // adresse domaine cible
-    $query_string = filter_input(INPUT_SERVER, 'QUERY_STRING');
-    $wpdf_param_url = ( $query_string !== '' ) ? '?' . $query_string : ''; //	récupérer le paramétrage de l'url : "?clé = valeur"
-    $nouvelle_adresse = $wpdf_modif_adresse ? $wpdf_domaine_site_cible . $wpdf_nouvelle_adresse . '/' . $wpdf_param_url : $wpdf_domaine_site_cible;
-    wp_redirect(esc_url($nouvelle_adresse), 301);
     exit; // toujours ajouter "exit" après une redirection
 }
 
