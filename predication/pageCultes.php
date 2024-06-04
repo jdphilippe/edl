@@ -79,13 +79,34 @@ if (isMobile()) {
 
             var table = $('#predications').DataTable({
                 bJQueryUI: ! isMobile(),
-                dom: 'Bfrtip', // Place une barre d'outil pour mettre le bouton Aide dedans
+                //dom: 'Bfrtip', // Place une barre d'outil pour mettre le bouton Aide dedans
+                dom: 'frtip',
                 fixedHeader: true,
                 paging: false,
                 sort: sortable,
                 responsive: true,
                 language: {
-                    url: "<?= $COMMON_PATH ?>/json/traduction.json"
+                    //url: "<?= $COMMON_PATH ?>/json/traduction.json"
+                    "sProcessing": "Traitement en cours...",
+                    "sSearch": "Recherche&nbsp;:",
+                    "sLengthMenu": "Afficher _MENU_ &eacute;l&eacute;ments",
+                    "sInfo":           "_TOTAL_ pr&eacute;dications disponibles",
+                    "sInfoEmpty":      "Aucune pr&eacute;dication ne correpond aux crit&egrave;res de recherche",
+                    "sInfoFiltered":   "(filtr&eacute;, sur un total de _MAX_)",
+                    "sInfoPostFix":    "",
+                    "sLoadingRecords": "Chargement en cours...",
+                    "sZeroRecords":    "Aucune pr&eacute;dication &agrave; afficher",
+                    "sEmptyTable": "Aucune pr&eacute;dication disponible",
+                    "oPaginate": {
+                        "sFirst": "Premier",
+                        "sPrevious": "Pr&eacute;c&eacute;dent",
+                        "sNext": "Suivant",
+                        "sLast": "Dernier"
+                    },
+                    "oAria": {
+                        "sSortAscending": ": activer pour trier la colonne par ordre croissant",
+                        "sSortDescending": ": activer pour trier la colonne par ordre d&eacute;croissant"
+                    }
                 },
                 ajax: {
                     url: "<?= $THEME_PATH ?>/json/" + fname
@@ -98,7 +119,7 @@ if (isMobile()) {
                         }
                     },
                     {data: "title"},
-                    {data: "link", bSortable: false, bSearchable: false},
+                    {data: "link", sortable: false, searchable: false},
                     {data: "refbib"}
                 ],
                 columnDefs: [
@@ -164,6 +185,7 @@ if (isMobile()) {
 
             if (isMobile()) {
             } else {
+                /*
                 $(window).scroll(function() {
                     var headerOffset = isScrolledIntoView(".header-main" ) ? $( ".header-main" ).height() : 0;
 
@@ -174,7 +196,7 @@ if (isMobile()) {
                     table.fixedHeader.headerOffset(headerOffset);
                     table.fixedHeader.adjust();
                     oldHeaderFixedValue = headerOffset;
-                });
+                });*/
 
                 $("#aide").dialog({
                     autoOpen: false,

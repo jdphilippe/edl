@@ -67,6 +67,10 @@ html, body {
     clear:both;
 }
 
+#footer a {
+    color: #22aadd;
+}
+
 .credit-link {
     display: none;
 }
@@ -78,4 +82,9 @@ html, body {
 
 .site-footer .site-info {
     padding: 1em 0;
+}
+
+.wp-block-button__link {
+    color: white;
+    background-color: #22aadd;
 }
