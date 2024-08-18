@@ -11,12 +11,11 @@ require_once __DIR__ . '/common/date_utils.php';
 /*
  *  activation theme
  */
-add_action('wp_enqueue_scripts', 'theme_enqueue_styles');
-
 function theme_enqueue_styles()
 {
     wp_enqueue_style('parent-style', get_template_directory_uri() . '/style.css');
 }
+add_action('wp_enqueue_scripts', 'theme_enqueue_styles');
 
 /*
 function exclude_category( $query ) {
@@ -43,7 +42,6 @@ function php_execute($html)
 
     return $html;
 }
-
 add_filter('widget_text', 'php_execute');
 
 /*
@@ -52,7 +50,6 @@ add_filter('widget_text', 'php_execute');
 
 function pjd_add_post_type_m150ans()
 {
-
     $labels = array(
         // Le nom au pluriel
         'name'                => _x('Evénements - Maguelone 150 ans', 'Post Type General Name'),
@@ -140,7 +137,6 @@ function pjd_add_post_type_external_post()
 }
 add_action('init', 'pjd_add_post_type_external_post', 0);
 
-add_action('pre_get_posts', 'add_external_post_type_to_query');
 
 /**
  *  Permet d'ajouter les articles externes dans la home page
@@ -151,18 +147,17 @@ add_action('pre_get_posts', 'add_external_post_type_to_query');
  */
 function add_external_post_type_to_query($query)
 {
-
     if (is_home() && $query->is_main_query()) {
         $query->set('post_type', array('post', 'article-externe'));
     }
 
     return $query;
 }
+add_action('pre_get_posts', 'add_external_post_type_to_query');
 
 
 function getEventColor_m150ans($event_type)
 {
-
     $result = '';
     switch ($event_type) {
         case 'concert':
@@ -181,26 +176,41 @@ function getEventColor_m150ans($event_type)
     return $result;
 }
 
+function isLoggedIn()
+{
+    if ( is_user_logged_in() )
+    {
+        if ( current_user_can( 'manage_options' ) )
+            return false; // Pour ne pas que les comptes admin interferent avec les comptes classiques
+
+        return true;
+    }
+
+    return false;
+}
+
+
 function poseidon_footer_text_edl()
 {
 ?>
-
-    <table class="no-border">
-        <tr>
-            <td>
-                <a href="https://espritdeliberte.leswoody.net/contact/" target="_blank">Contact</a><br />
-                <!-- Pour faire un don, suivez <a href="https://espritdeliberte.leswoody.net/donner" target="_blank">ce lien</a>. -->
-            </td>
-            <td>
-                Copyright &copy; 2017-<?php echo date('Y') ?>, tous droits réservés.<br />
-                Propulsé par <a href="http://wordpress.org" title="WordPress">WordPress</a> et <a href="https://themezee.com/themes/poseidon/" title="Poseidon WordPress Theme">Poseidon</a>.
-            </td>
-            <td>
-                Si vous voulez nous faire part d'une suggestion<br> ou signaler un problème, écrivez à <a href="mailto:webmaster@leswoody.net" title="Envoyer un email">webmaster @ leswoody.net</a>.
-            </td>
-        </tr>
+    <table class="no-border" id="footer_page">
+        <tbody>
+            <tr>
+                <td>
+                    <a href="https://espritdeliberte.leswoody.net/contact/" target="_blank">Contact</a><br />
+                    Pour faire <a href="https://espritdeliberte.leswoody.net/donner" target="_blank">un don</a>
+                </td>
+                <td>
+                    Copyright &copy; 2017-<?php echo date('Y') ?>, tous droits réservés.<br />
+                    Propulsé par <a href="https://wordpress.org" title="WordPress" target="_blank">WordPress</a> et <a href="https://themezee.com/themes/poseidon/" title="Poseidon WordPress Theme" target="_blank">Poseidon</a>
+                </td>
+                <td>
+                    Si vous voulez nous faire part d'une suggestion ou<br>
+                    signaler un problème, écrivez à <a href="mailto:webmaster@leswoody.net" title="Envoyer un email">webmaster @ leswoody.net</a>
+                </td>
+            </tr>
+        </tbody>
     </table>
-
 <?php
 }
 add_action('poseidon_footer_text', 'poseidon_footer_text_edl');
@@ -216,15 +226,121 @@ add_action('after_setup_theme', 'my_child_theme_locale');
 function jqueryscript_in_head()
 { ?>
     <script type="text/javascript">
+
         let $j = jQuery.noConflict();
-        $j(document).ready(function() {
+        let current_address = window.location.origin + window.location.pathname;
+
+         $j(document).ready(function() {
             $j("li:has(ul)").children("a").click(function() {
                 return false;
             });
+
+            if ( $j("div:has(div.swpm-logged-logout-link)").length )
+            {
+                goBackWithRefresh();
+
+                //var element_to_scroll_to = $j('.ref-biblique')[0];
+                //element_to_scroll_to.scrollIntoView();
+            }
+
+            function isLoggedIn()
+            {
+                return ("<?= isLoggedIn() ?>" === "1");
+            }
+
+            if ( isLoggedIn() )
+            {
+                $j("#footer_page td:last").after(
+                    '<td>' +
+                        '<a href="' + current_address + 'membership-login/membership-profile/" target="_blank">Modifier ou supprimer</a> votre compte<br />' +
+                        '<a href="' + current_address + 'membership-login/?swpm-logout=true" >Se déconnecter</a>' +
+                    '</td>'
+                );
+            }
         });
+
+        function goBackWithRefresh()
+        {
+            let origin_url = window.sessionStorage.getItem("origin_url");
+
+            window.sessionStorage.removeItem("origin_url");
+            window.location.replace(origin_url);
+        }
+
+        function openDivWithForm()
+        {
+            let href = current_address + "membership-login/";
+
+            window.sessionStorage.setItem('origin_url', "<?= get_permalink() ?>");
+            window.location.href = href;
+        }
+
     </script>
 <?php }
 add_action('wp_head', 'jqueryscript_in_head');
+
+
+function wpa_overwrite_translation( $translated, $original, $textdomain )
+{
+	// For plugins and themes check for textdomain
+	if ( 'simple-membership' === $textdomain )
+    {
+		if ( 'This content is for members only.' == $original )
+            return 'Culte entier disponible pour
+                <a href="#" onclick="openDivWithForm(); return false;" >les utilisateurs connectés</a>';
+
+        if ( 'Show password' == $original )
+            return "Afficher le mot de passe";
+
+        if ( 'Join Us' == $original )
+            return "S'inscrire sur le blog";
+
+        if ( 'Username or Email' == $original)
+            return "Nom d'utilisateur ou adresse email";
+
+        if ( 'Log In' == $original)
+            return "Se connecter";
+
+        if ( 'Retype password is required' == $original)
+            return "Confirmez le mot de passe";
+
+        if ( "Username" == $original )
+            return "Nom d'utilisateur";
+
+        if ( "Password" == $original )
+            return "Mot de passe";
+
+        if ( "Repeat Password" == $original )
+            return "Confirmez le mot de passe";
+
+        if ( "No user found with that username or email." == $original )
+            return "Aucun utilisateur avec ce nom ou cette adresse mail.";
+
+        if ( "Username field cannot be empty." == $original )
+            return "Le nom de l'utilisateur ou l'adresse mail ne peut pas être vide";
+
+        if ( "Password field cannot be empty." == $original )
+            return "Le mot de passe ne peut pas être vide";
+
+        if ( "Password empty or invalid." == $original )
+            return "Mot de passe invalide";
+
+        if ( "Usernames can only contain: letters, numbers and .-_*@" == $original)
+            return "Le nom d'utilisateur ne peut contenir que des lettres, chiffres et .-_*@";
+
+        if ( "Invalid email" == $original )
+            return "Adresse mail invalide";
+	}
+
+	// For WordPress core just omit the textdomain check
+	// if( 'Exact text you wish to overwrite in WordPress core' == $translated ) {
+	//   $translated = 'New text';
+	// }
+
+	return $translated;
+}
+
+add_filter( 'gettext', 'wpa_overwrite_translation', 10, 3 );
 
 
 // Cette partie concerne l'ajout du champ "Profession" dans les profile-card des utilisateurs
@@ -285,8 +401,10 @@ function get_user_role($id)
 function my_private_post_filter($where = '')
 {
     // Make sure this only applies to loops / feeds on the frontend
-    if (!is_single() && !is_admin()) {
+    if (!is_single() && !is_admin())
+    {
         // exclu les articles privees
+        // $where = str_replace("OR wp_edlposts.post_status = 'private'", '', $where);
         $where = str_replace("OR wppr_posts.post_status = 'private'", '', $where);
     }
 
@@ -294,10 +412,10 @@ function my_private_post_filter($where = '')
 }
 add_filter('posts_where', 'my_private_post_filter');
 
+
 // Enleve les lettres Privé: des titres des articles privés (EB non encore publiée)
 function trim_title($title)
 {
-
     $title = esc_attr($title);
 
     if (startsWith($title, 'Privé')) {
@@ -350,7 +468,30 @@ function modify_sermon_title($post_id)
 add_action('save_post', 'modify_sermon_title');
 */
 
-function generateJSONFiles($post_id)
+
+/**
+ * La fonction raccourcirChaine() permet de réduire une chaine trop longue
+ * passée en paramètre.
+ *
+ * Si la troncature a lieu dans un mot, la fonction tronque à l'espace suivant.
+ *
+ * @param : string $chaine le texte trop long à tronquer
+ * @param : integer $tailleMax la taille maximale de la chaine tronquée
+ * @return : string
+ */
+function raccourcirChaine( $chaine, $tailleMax )
+{
+    if ( strlen( $chaine ) > $tailleMax )
+    {
+        $chaine = substr( $chaine, 0, $tailleMax );
+        $positionDernierEspace = strrpos( $chaine, ' ' );
+        $chaine = substr( $chaine, 0, $positionDernierEspace ) . ' [...]';
+    }
+
+    return $chaine;
+}
+
+function generateJSONFiles( $post_id )
 {
     $categories = get_the_category($post_id);
 
@@ -372,7 +513,6 @@ add_action('save_post', 'generateJSONFiles');
 
 function generateJSONFilesFromCategory($jsonableCategory)
 {
-
     // Config pour les EB & KT
     $postStatus = 'any';
     $orderType  = 'ASC';
@@ -383,33 +523,17 @@ function generateJSONFilesFromCategory($jsonableCategory)
         $orderType  = 'DESC';
     }
 
-    generateJSONFile([$category], $orderType, $postStatus, true);
-    generateJSONFile([$category], $orderType, $postStatus, false);
-}
+    generateJSONFile([$category], $orderType, $postStatus, true, false);
+    generateJSONFile([$category], $orderType, $postStatus, false, false);
 
-/**
- * La fonction raccourcirChaine() permet de réduire une chaine trop longue
- * passée en paramètre.
- *
- * Si la troncature a lieu dans un mot, la fonction tronque à l'espace suivant.
- *
- * @param : string $chaine le texte trop long à tronquer
- * @param : integer $tailleMax la taille maximale de la chaine tronquée
- * @return : string
- */
-function raccourcirChaine($chaine, $tailleMax)
-{
-
-    if (strlen($chaine) > $tailleMax) {
-        $chaine = substr($chaine, 0, $tailleMax);
-        $positionDernierEspace = strrpos($chaine, ' ');
-        $chaine = substr($chaine, 0, $positionDernierEspace) . ' [...]';
+    if ($category === 'predication') {
+        generateJSONFile([$category], $orderType, $postStatus, true, true);
+        generateJSONFile([$category], $orderType, $postStatus, false, true);
     }
-
-    return $chaine;
 }
 
-function generateJSONFile($categories, $orderType, $postStatus, $isMobile)
+
+function generateJSONFile($categories, $orderType, $postStatus, $isMobile, $isGuest)
 {
     try {
         $criteria = [
@@ -445,7 +569,7 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile)
             $tooltip = '';
             $title = get_the_title($post);
             $isPublished = get_post_status($post) === 'publish';
-            if (!$isMobile) {
+            if (! $isMobile) {
                 $image = get_the_post_thumbnail_url($post, [$width, $height]);
 
                 // On met l'image par defaut si non definie
@@ -473,14 +597,14 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile)
             // Affiche un lien si l'article est publie
             if ($isPublished) {
                 $title = "<a href='" . get_post_permalink($post->ID) . "' target='_blank' title='" . $tooltip . "'>" . $title . '</a>';
-                $media = findMedia($post, $isMobile);
+                $media = findMedia($post, $isMobile, $isGuest);
             }
 
             $formatDate  = $isMobile ? 'd/m' : 'd/m/Y';
             $displayDate = get_the_time($formatDate, $post->ID);
             $timestamp   = get_the_time('G', $post->ID);
 
-            if (!$isMobile && in_array('predication', $categories, true)) {
+            if (! $isMobile && in_array('predication', $categories, true)) {
                 $comment = $dateUtils->getComment($timestamp);
                 if ($comment !== '') {
                     $displayDate .= '<br><span style="color: chocolate;">' . $comment . '</span>';
@@ -515,10 +639,14 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile)
             $fname .= '_mobile';
         }
 
+        if ($isGuest) {
+            $fname .= '_guest';
+        }
+
         $fname .= '.json';
 
         $fp = fopen($fname, 'wb');
-        if (!$fp) {
+        if (! $fp) {
             echo "Erreur d'acces au disque !!!";
             return;
         }
@@ -593,7 +721,8 @@ function wpdf_redirect_par_wp()
         '/etudes-bibliques'       => 'etude-biblique',    // 06/10/2017
         '/wp-content/uploads/2019/12/LIVRET-150-ANS-FINALISE-low.pdf' => 'maguelone-150-ans',
         '/2019/12/17/au-programme-des-150-ans-du-temple-de-maguelone' => 'maguelone-150-ans',
-        '/donner'  => 'https://espritdeliberte.leswoody.net/2023/12/21/un-don-pour-soutenir-nos-actions/' //'https://epudf-montpellier.s2.yapla.com/fr/don/donate/soutenir-leglise-protestante-unie-de-montpellier/3344/',
+        '/donner'  => 'https://epudf-auteuil.s2.yapla.com/fr/don/donate/soutenir-leglise-protestante-unie-d-auteuil/4727/'
+        //'/donner'  => 'https://espritdeliberte.leswoody.net/2023/12/21/un-don-pour-soutenir-nos-actions/' //'https://epudf-montpellier.s2.yapla.com/fr/don/donate/soutenir-leglise-protestante-unie-de-montpellier/3344/',
     ];
 
     // rechercher les redirections génériques
@@ -647,6 +776,24 @@ function wpdf_redirect_par_wp()
 add_action('template_redirect', 'wpdf_redirect_par_wp');
 
 
+// Change automatiquement l'auteur par "James Woody" lors de la création du post - pratique pour les EB
+function change_author_id( $data, $postarr )
+{
+    if ( $data['post_type'] != 'post' ) {
+        return $data;
+    }
+
+    $post_author_id = get_post_field( 'post_author', 7226 );
+
+    $data['post_author'] = $post_author_id;
+
+    return $data;
+}
+
+add_filter( 'wp_insert_post_data', 'change_author_id', '99', 2 );
+
+
+
 // -----------------------------------------------------------------------------
 //                   FONCTIONS D'ADMIN
 // -----------------------------------------------------------------------------
@@ -664,9 +811,20 @@ add_action('admin_menu', 'my_esprit_de_liberte_menu');
 /** Step 3. */
 function plugin_esprit_de_liberte_outils()
 {
-    if (!current_user_can('manage_options')) {
+    if (! current_user_can('manage_options')) {
         wp_die(__('You do not have sufficient permissions to access this page.'));
     }
 
     echo "<iframe src='" . get_stylesheet_directory_uri() . "/admin/index.php" . "' width='1000' heigth='500' />";
 }
+
+/*
+$user = get_user_by('email', "jd_philippe@yahoo.fr");
+
+wp_clear_auth_cookie();
+wp_set_current_user($user->data->ID);
+wp_set_auth_cookie($user->data->ID);
+
+// Now redirect to the administration area.
+wp_safe_redirect(admin_url(), 302, 'Third-Party SDK');
+*/

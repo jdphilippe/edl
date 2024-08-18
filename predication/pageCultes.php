@@ -16,6 +16,7 @@ function isMobile() {
     return wp_is_mobile();
 }
 
+
 $inc_common_ui = __DIR__ . "/../common/common" . ( isMobile() ? "_mobile" : "" ) . ".php"; // pour inclure common.php ou common_mobile.php selon le cas
 require_once $inc_common_ui;
 
@@ -48,9 +49,14 @@ if (isMobile()) {
     ;
     (function (window, $, undefined) {
 
-        function isMobile() {
-            //return "1";
+        function isMobile()
+        {
             return ("<?= isMobile() ?>" === "1");
+        }
+
+        function isLoggedIn()
+        {
+            return ("<?= isLoggedIn() ?>" === "1");
         }
 
         function isScrolledIntoView(elem)
@@ -70,10 +76,15 @@ if (isMobile()) {
                 fname = category,
                 oldHeaderFixedValue = 0,
                 sortable = ! isMobile(),
-                dateColWidth = isMobile() ? 80 : 100;
+                dateColWidth = isMobile() ? 80 : 100,
+                linkColWidth = isLoggedIn() ? 150 : 100;
+                //linkColWidth = isLoggedIn() ? 89 : 54;
 
             if (isMobile())
                 fname += "_mobile";
+
+            if (! isLoggedIn())
+                fname += "_guest";
 
             fname += ".json";
 
@@ -86,7 +97,6 @@ if (isMobile()) {
                 sort: sortable,
                 responsive: true,
                 language: {
-                    //url: "<?= $COMMON_PATH ?>/json/traduction.json"
                     "sProcessing": "Traitement en cours...",
                     "sSearch": "Recherche&nbsp;:",
                     "sLengthMenu": "Afficher _MENU_ &eacute;l&eacute;ments",
@@ -124,7 +134,7 @@ if (isMobile()) {
                 ],
                 columnDefs: [
                     {width: dateColWidth, targets: 0}, // Date
-                    {width: 87,           targets: 2}, // Liens
+                    {width: linkColWidth, targets: 2}, // Liens
                     {width: 170,          targets: 3}  // Texte biblique
                 ],
                 order: [[0, "desc"]],
@@ -163,7 +173,8 @@ if (isMobile()) {
             });
 
             var helpWindowClosed = true; // Par defaut, la boite d'aide est fermee
-            function onHelpWindowClose() {
+            function onHelpWindowClose()
+            {
                 var action = helpWindowClosed ? 'open' : 'close';
                 helpWindowClosed = !helpWindowClosed;
                 var btnTitle = helpWindowClosed ? 'Aide' : 'Fermer';

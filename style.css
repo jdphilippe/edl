@@ -88,3 +88,13 @@ html, body {
     color: white;
     background-color: #22aadd;
 }
+
+/* Cache la ligne 'Type d'adhesion' dans le formulaire d'inscription */
+.swpm-membership-level-row {
+    display: none;
+}
+
+/* Cache la case a cocher 'se souvenir de moi' dans le formulaire de login */
+.swpm-remember-me {
+    display: none;
+}

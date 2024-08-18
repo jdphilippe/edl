@@ -3,8 +3,8 @@
  * Template Name: Page des etudes bibliques
  */
 
- ini_set('display_errors',1);
- error_reporting(E_ALL);
+// ini_set('display_errors',1);
+// error_reporting(E_ALL);
 // var_dump( $the_query->posts );
 
 get_header();
@@ -12,7 +12,6 @@ get_header();
 $THEME_PATH = get_stylesheet_directory_uri();
 
 function isMobile() {
-    //return 1;
     return wp_is_mobile();
 }
 
@@ -80,7 +79,6 @@ $cat_calling = end( $tab );
     (function (window, $, undefined) {
 
         function isMobile() {
-            //return "1";
             return ("<?= isMobile() ?>" === "1");
         }
 
@@ -132,7 +130,7 @@ $cat_calling = end( $tab );
                 ],
                 columnDefs: [
                     {width: dateColWidth, targets: 0}, // Date
-                    {width: 87          , targets: 2}, // Liens 65
+                    {width: 90          , targets: 2}, // Liens
                     {width: 170         , targets: 3}  // Texte a l'etude
                 ],
                 initComplete: function () {
@@ -143,11 +141,12 @@ $cat_calling = end( $tab );
                 },
                 drawCallback: function () {
                     // Une fois les lignes inserees - la hauteur etant occupee, on peut replacer le pied de page
-                    footerResize();
+                    //footerResize();
                 }
             });
 
             if (! isMobile()) {
+                /*
                 $(window).scroll(function() {
                     var headerOffset = isScrolledIntoView(".header-main" ) ? $( ".header-main" ).height() : 0;
 
@@ -159,20 +158,21 @@ $cat_calling = end( $tab );
                     table.fixedHeader.adjust();
                     oldHeaderFixedValue = headerOffset;
                 });
+                */
             }
         });
 
         // Pour caler le pied de page en bas lors d'un changement d'onglet
-
+/*
         function footerResize() {
-            var footerPosition = ($("body").height() + $("#footer").innerHeight() > $(window).height()) ? "inherit" : "fixed";
+            var footerPosition = "inherited"; // ($("body").height() + $("#footer").innerHeight() > $(window).height()) ? "inherit" : "fixed";
             $('#footer').css('position', footerPosition);
         }
 
         $("body").resize(function() {
             setTimeout(footerResize, 500);
         });
-
+*/
         function setActiveTab(numTab) {
             var tab = $("li[id^='li_']").eq(numTab);
             tab = tab.attr("id").replace("li_", "");
@@ -216,7 +216,17 @@ $cat_calling = end( $tab );
                             $(value).addClass("active");
                     });
                 } else {
-                    $("div[id='tab_'].ui-widget-content a").css("color", "#22aadd"); // On remet les liens des titres en bleu (tabs surcharge la css)
+                    // On remet les liens des titres en bleu (tabs surcharge la css)
+                    $("li[role='tab'].ui-tabs-tab a")
+                        .css("color", "#22aadd")
+                        .css("background-color", "##f6f6f6");
+
+                    $("li[role='tab'].ui-tabs-active a")
+                        .css("color", "#FFFFFF")
+                        .css("background-color", "#999999");
+
+                    $("#table_rencontre a[href]")
+                        .css("color", "#22aadd");
                 }
             }).fail(function() {
                 // En cas d'erreur 404. Selection d'un onglet sans EB publiee

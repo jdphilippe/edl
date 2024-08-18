@@ -17,8 +17,8 @@ function endsWith($haystack, $needle) {
     return ( substr($haystack, -$length) === $needle );
 }
 
-if (! function_exists('write_log')) {
-
+if (! function_exists('write_log'))
+{
     function write_log($log) {
         if (true === WP_DEBUG) {
             if (is_array($log) || is_object($log)) {
@@ -33,7 +33,8 @@ if (! function_exists('write_log')) {
 
 // ----------------------- Fonctions generiques -----------------------
 
-function isSermon($post_id) {
+function isSermon($post_id)
+{
     $cats = get_the_category($post_id);
     $found = false;
     foreach ($cats as $c) {
@@ -49,8 +50,8 @@ function isSermon($post_id) {
 /*
  * Recupere un extrait pour l'afficher dans une bulle tooltip
  */
-function getExcerptOfSermon( $post_id ) {
-
+function getExcerptOfSermon( $post_id )
+{
     return ''; // Pas activé pour le moment
 
     // Uniquement valable pour les predications
@@ -78,7 +79,7 @@ function getExcerptOfSermon( $post_id ) {
             $result = 'probleme de chaine.';
         } else {
             for ($i = $maxChar; $i >= $minChar; $i--) {
-                if ( in_array( $result{$i - 1}, $arrayOfChars, true ) ) {
+                if ( in_array( $result[$i - 1], $arrayOfChars, true ) ) {
                     $result = substr($result, 0, $i);
                     break;
                 }
@@ -113,7 +114,8 @@ function getExcerptById($post_id) {
 }
 */
 
-function surroundWithDiv($value, $center) {
+function surroundWithDiv($value, $center)
+{
     if ( $value === '' ) {
         return '';
     }
@@ -129,7 +131,8 @@ function surroundWithDiv($value, $center) {
 }
 
 // Pour rechercher les textes bibliques dans un post
-function extract_text_from_tag($attr, $value, $string) {
+function extract_text_from_tag( $attr, $value, $string )
+{
     $attr  = preg_quote($attr, null);
     $value = preg_quote($value, null);
     $pattern = '/<span[^>]*' . $attr . '="' . $value . '">(.*?)<\\/span>/si';
@@ -153,7 +156,8 @@ function extract_text_from_tag($attr, $value, $string) {
 
 // Pour extraire et creer les liens vers les fichiers mp3
 
-function createLink($link) {
+function createLink( $link )
+{
     global $COMMON_PATH;
 
     $image = '';
@@ -209,25 +213,35 @@ function isVideo( $media )
 	return strpos( $media, 'youtu' ) !== false;
 }
 
-function findMedia($post, $isMobile) {
+function findMedia( $post, $isMobile, $isGuest )
+{
     $result = '';
     $tab    = array();
 
     // Recherche en passant par les API WP
 
     $media = get_attached_media('audio', $post->ID);
-    foreach ($media as $audio) {
+    /*
+    foreach ($media as $audio)
+    {
         $tab[] = createLink(wp_get_attachment_url($audio->ID));
     }
+    */
 
     // Recherche egalement par expression reguliere dans le texte de l'article
     $content = $post->post_content;
     preg_match_all('/<a[^>]+href=([\'"])(.+?)\1[^>]*>/i', $content, $media);
-    if (! empty($media)) {
+    if (! empty($media))
+    {
         $media = array_unique($media[2]); // Peut y avoir des liens en double. Balise <a href> et [audio]
-        foreach ($media as $m) {
+        foreach ($media as $m)
+        {
+            if ( $isGuest && strpos($m, 'culte') !== false )
+                continue;
+
             $link = createLink($m);
-            if ( $link !== '' && ! isVideo($link )) {
+            if ( $link !== '' && ! isVideo( $link ))
+            {
 		        $tab[] = $link;
             }
         }
@@ -249,23 +263,36 @@ function findMedia($post, $isMobile) {
     $tab = array_unique($tab);
     asort($tab);
 
-    if ( ! $isMobile && isSermon( $post->ID ) ) {
+    if ( ! $isMobile && isSermon( $post->ID ) )
+    {
 	    $dummyLink = '<img src="https://espritdeliberte.leswoody.net/wp-content/uploads/2018/07/img_transparente.png" style="vertical-align: middle;"  alt="">';
-    	switch ( count($tab) ) {
-		    case 1:
-			    if ( ! strpos($tab[0], 'culte') !== false ) {
-				    array_splice( $tab, 0, 0, $dummyLink ); // On place ce lien en premier
-			    }
-				break;
 
-		    case 2:
-		    	if ( $hasVideo ) {
-					array_splice($tab, 0, 0, $dummyLink); // On place ce lien en premier
-			    }
-			    break;
+        if (! $isGuest)
+        {
+            switch ( count( $tab ) )
+            {
+                case 1:
+                    if ( ! strpos($tab[0], 'culte') !== false ) {
+                        array_splice( $tab, 0, 0, $dummyLink ); // On place ce lien en premier
+                    }
+                    break;
 
-		    default :
-	    }
+                case 2:
+                    if ( $hasVideo ) {
+                        array_splice( $tab, 0, 0, $dummyLink ); // On place ce lien en premier
+                    }
+                    break;
+
+                default :
+            }
+        }
+        else
+        {
+            if ( $hasVideo && count( $tab ) == 1 )
+            {
+                array_splice( $tab, 0, 0, $dummyLink ); // On place ce lien en premier
+            }
+        }
     }
 
     foreach ( $tab as $mp3 ) {
