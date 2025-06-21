@@ -7,10 +7,11 @@ class DateUtils {
 	private $mp_cancelled_date = array();
 
 	public function __construct() {
-		$currentYear = date('Y' );
+		$currentYear = date('Y');
 		for ($year = 2016; $year <= $currentYear; $year++) {
 			$this->getAdventDates ($year);
 
+			$this->mp_date_comment[ $this->dimanche_epiphanie($year) ]   = 'Epiphanie';
 			$this->mp_date_comment[ $this->dimanche_rameaux($year) ]     = 'Rameaux';
 			$this->mp_date_comment[ $this->lundi_saint($year) ]          = 'Lundi Saint';
 			$this->mp_date_comment[ $this->mardi_saint($year) ]          = 'Mardi Saint';
@@ -22,12 +23,12 @@ class DateUtils {
 			$this->mp_date_comment[ $this->jeudi_ascension($year) ]      = 'Ascension';
 			$this->mp_date_comment[ $this->dimanche_pentecote($year) ]   = 'Pentecôte';
 			$this->mp_date_comment[ $this->dimanche_reformation($year) ] = 'Réformation';
-			$this->mp_date_comment[ $this->premier_dimanche_avent() ]           = '1<sup>er</sup> Dim Avent';
-			$this->mp_date_comment[ $this->deuxieme_dimanche_avent() ]          = '2<sup>ème</sup> Dim Avent';
-			$this->mp_date_comment[ $this->troisieme_dimanche_avent() ]         = '3<sup>ème</sup> Dim Avent';
-			$this->mp_date_comment[ $this->quatrieme_dimanche_avent() ]         = '4<sup>ème</sup> Dim Avent';
-			$this->mp_date_comment[ "24/12/$year" ]                             = 'Veillée de Noël';
-			$this->mp_date_comment[ "25/12/$year" ]                             = 'Noël';
+			$this->mp_date_comment[ $this->premier_dimanche_avent() ]    = '1<sup>er</sup> Dim Avent';
+			$this->mp_date_comment[ $this->deuxieme_dimanche_avent() ]   = '2<sup>ème</sup> Dim Avent';
+			$this->mp_date_comment[ $this->troisieme_dimanche_avent() ]  = '3<sup>ème</sup> Dim Avent';
+			$this->mp_date_comment[ $this->quatrieme_dimanche_avent() ]  = '4<sup>ème</sup> Dim Avent';
+			$this->mp_date_comment[ "24/12/$year" ]                      = 'Veillée de Noël';
+			$this->mp_date_comment[ "25/12/$year" ]                      = 'Noël';
 
 			if ( $year === 2020 ) {
 				$this->mp_date_comment['12/01/2020'] = '150 ans, Ep. 1';  // Batir un temple
@@ -88,7 +89,35 @@ class DateUtils {
 		return $this->mp_cancelled_date[ $date ];
 	}
 
-	private function getAdventDates ( $annee): void {
+	// Fonction pour obtenir le dimanche le plus proche de l'Épiphanie
+	private function dimanche_epiphanie($annee) : string {
+		// La date de l'Épiphanie est toujours le 6 janvier de chaque année
+		$epiphanieDate = strtotime("6 January $annee");
+	
+		// Trouver le jour de la semaine de l'Épiphanie (0 = dimanche, 1 = lundi, ...)
+		$dayOfWeek = date('w', $epiphanieDate);
+
+		// Si l'Épiphanie tombe un dimanche, retourner cette date
+		if ($dayOfWeek == 0) {
+			$dimanche = $epiphanieDate;
+		} else {
+			// Calculer le dimanche suivant ou précédent le 6 janvier
+			if ($dayOfWeek < 3) {
+				// Si l'Épiphanie tombe avant mercredi (lundi ou mardi), on prend le dimanche précédent
+				$daysToSubtract = $dayOfWeek;
+			} else {
+				// Si l'Épiphanie tombe après mercredi (jeudi, vendredi, samedi), on prend le dimanche suivant
+				$daysToSubtract = 7 - $dayOfWeek;
+			}
+
+			// Calculer la date du dimanche le plus proche
+			$dimanche = strtotime("$daysToSubtract days", $epiphanieDate);
+		}
+	
+		return date( 'd/m/Y', $dimanche);
+	}
+
+	private function getAdventDates ( $annee ): void {
 		$date = mktime(0,0,0,11,25,$annee);
 		$sundays = 0;
 		while ( $sundays < 4 ) {

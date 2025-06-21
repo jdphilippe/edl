@@ -213,21 +213,17 @@ function isVideo( $media )
 	return strpos( $media, 'youtu' ) !== false;
 }
 
-function findMedia( $post, $isMobile, $isGuest )
+function findMedia( $post, $isMobile, $isGuest, &$dateMedia )
 {
     $result = '';
     $tab    = array();
+    $dateMedia = '';
+    $isPredication = isSermon( $post->ID );
 
     // Recherche en passant par les API WP
 
     $media = get_attached_media('audio', $post->ID);
-    /*
-    foreach ($media as $audio)
-    {
-        $tab[] = createLink(wp_get_attachment_url($audio->ID));
-    }
-    */
-
+ 
     // Recherche egalement par expression reguliere dans le texte de l'article
     $content = $post->post_content;
     preg_match_all('/<a[^>]+href=([\'"])(.+?)\1[^>]*>/i', $content, $media);
@@ -239,34 +235,38 @@ function findMedia( $post, $isMobile, $isGuest )
             if ( $isGuest && strpos($m, 'culte') !== false )
                 continue;
 
+            if ( $isPredication && endsWith($m, 'pdf'))
+                continue; // On ignore les liens PDF dans les cultes
+
             $link = createLink($m);
             if ( $link !== '' && ! isVideo( $link ))
             {
 		        $tab[] = $link;
+                if ($dateMedia === '')
+                    preg_match_all('/(\d{2})(\d{2})(\d{2})/i', $m, $dateMedia);
             }
         }
     }
 
 	$hasVideo = false;
     $content = trim($content);
-    if (startsWith($content, '[youtube ' )) {
+    if (startsWith($content, '[youtube ' )) 
+    {
         $link = substr( $content, 9, strpos( $content, ']' ) -9 );
         $link = createLink($link);
         $tab[] = $link;
         $hasVideo = true;
     }
 
-    if ( empty($tab) ) {
+    if (empty($tab))
         return '';
-    }
 
     $tab = array_unique($tab);
     asort($tab);
 
-    if ( ! $isMobile && isSermon( $post->ID ) )
+    if ( ! $isMobile && $isPredication ) 
     {
 	    $dummyLink = '<img src="https://espritdeliberte.leswoody.net/wp-content/uploads/2018/07/img_transparente.png" style="vertical-align: middle;"  alt="">';
-
         if (! $isGuest)
         {
             switch ( count( $tab ) )

@@ -189,6 +189,18 @@ function isLoggedIn()
     return false;
 }
 
+function extendCookie()
+{
+    foreach($_COOKIE as $key => $value) 
+    {
+        if (str_starts_with($key, 'simple_wp_membership_')) 
+        {
+            setcookie($key, $value, time() + 31556926, '/');
+            break;
+        }        
+    }
+}
+add_action('init', 'extendCookie');
 
 function poseidon_footer_text_edl()
 {
@@ -230,8 +242,8 @@ function jqueryscript_in_head()
         let $j = jQuery.noConflict();
         let current_address = window.location.origin + window.location.pathname;
 
-         $j(document).ready(function() {
-            $j("li:has(ul)").children("a").click(function() {
+        $j(document).ready(function() {
+            $j("li:has(ul)").children("a").on(function() {
                 return false;
             });
 
@@ -245,10 +257,10 @@ function jqueryscript_in_head()
 
             function isLoggedIn()
             {
-                return ("<?= isLoggedIn() ?>" === "1");
+                return <?= is_user_logged_in() ?> ;                
             }
 
-            if ( isLoggedIn() )
+            if ( isLoggedIn() )            
             {
                 $j("#footer_page td:last").after(
                     '<td>' +
@@ -287,7 +299,7 @@ function wpa_overwrite_translation( $translated, $original, $textdomain )
     {
 		if ( 'This content is for members only.' == $original )
             return 'Culte entier disponible pour
-                <a href="#" onclick="openDivWithForm(); return false;" >les utilisateurs connectés</a>';
+                <a href="#" onclick="openDivWithForm(); return false;" title="C\'est libre, gratuit et ouvert à tous" >les utilisateurs connectés</a>';
 
         if ( 'Show password' == $original )
             return "Afficher le mot de passe";
@@ -330,7 +342,11 @@ function wpa_overwrite_translation( $translated, $original, $textdomain )
 
         if ( "Invalid email" == $original )
             return "Adresse mail invalide";
+
 	}
+
+    if ("Read more" == $original)
+        return "Voir plus";
 
 	// For WordPress core just omit the textdomain check
 	// if( 'Exact text you wish to overwrite in WordPress core' == $translated ) {
@@ -564,7 +580,7 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile, $isGu
         foreach ($the_query->posts as $post) {
             $content = apply_filters('the_content', $post->post_content);
             $biblicalRef = extract_text_from_tag('class', 'ref-biblique', $content);
-
+            $dateMedia = '';
             $media   = '';
             $tooltip = '';
             $title = get_the_title($post);
@@ -597,18 +613,37 @@ function generateJSONFile($categories, $orderType, $postStatus, $isMobile, $isGu
             // Affiche un lien si l'article est publie
             if ($isPublished) {
                 $title = "<a href='" . get_post_permalink($post->ID) . "' target='_blank' title='" . $tooltip . "'>" . $title . '</a>';
-                $media = findMedia($post, $isMobile, $isGuest);
+                $media = findMedia($post, $isMobile, $isGuest, $dateMedia);
             }
 
             $formatDate  = $isMobile ? 'd/m' : 'd/m/Y';
             $displayDate = get_the_time($formatDate, $post->ID);
             $timestamp   = get_the_time('G', $post->ID);
+            $postYear    = get_the_time('Y', $post->ID);
+            $isPredication = in_array('predication', $categories, true);
 
-            if (! $isMobile && in_array('predication', $categories, true)) {
-                $comment = $dateUtils->getComment($timestamp);
-                if ($comment !== '') {
-                    $displayDate .= '<br><span style="color: chocolate;">' . $comment . '</span>';
+            if ($isPredication) {
+                if (intval($postYear) >= 2024 && ! empty($dateMedia)) {
+                    // A partir de 2024, les commentaires dans le tableau sont bases sur les dates des mp3, s'il y en a             
+                    $displayDateYear  = join('', $dateMedia[1]);
+                    $displayDateMonth = join('', $dateMedia[2]);
+                    $displayDateDay   = join('', $dateMedia[3]);
+
+                    if (! $isMobile) {
+                        $displayDate = $displayDateDay . "/" . $displayDateMonth . "/20" . $displayDateYear;
+                    } else {
+                        $displayDate = $displayDateDay . "/" . $displayDateMonth;
+                    }
+
+                    $timestamp = mktime(0, 0, 0, intval($displayDateMonth), intval($displayDateDay), intval($displayDateYear));
                 }
+                
+                if (! $isMobile) {
+                    $comment = $dateUtils->getComment($timestamp);
+                    if ($comment !== '') {
+                        $displayDate .= '<br><span style="color: chocolate;">' . $comment . '</span>';
+                    }
+                }                
             }
 
             $data[] = [
